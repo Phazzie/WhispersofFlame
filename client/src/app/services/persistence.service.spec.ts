@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { PersistenceService } from './persistence.service';
 import { MockPersistenceService } from './mocks/mock-persistence.service';
 import { PERSISTENCE_SERVICE } from './tokens';
 import { IPersistenceService } from '@contracts/interfaces/IPersistenceService';

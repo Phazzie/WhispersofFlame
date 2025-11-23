@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthService } from './auth.service';
 import { MockAuthService } from './mocks/mock-auth.service';
 import { AUTH_SERVICE } from './tokens';
 import { IAuthService } from '@contracts/interfaces/IAuthService';

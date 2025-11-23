@@ -51,12 +51,14 @@ jobs:
 
       - name: Create review context
         id: review-context
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           echo "## Changed Files" > review-context.md
           echo "${{ steps.changed-files.outputs.all_changed_files }}" >> review-context.md
           echo "" >> review-context.md
           echo "## PR Description" >> review-context.md
-          echo "${{ github.event.pull_request.body }}" >> review-context.md
+          echo "$PR_BODY" >> review-context.md
 
       - name: Run Claude Code Review
         id: claude-review
@@ -210,8 +212,8 @@ jobs:
         if: contains(github.event.comment.body, '@claude-code fix')
         working-directory: ./client
         run: |
-          npm run lint --fix || true
-          npm run format || true
+          npm run lint -- --fix || echo "Lint fixes failed"
+          npm run format || echo "Format failed"
 
       - name: Commit and push fixes
         if: contains(github.event.comment.body, '@claude-code fix')
@@ -219,17 +221,22 @@ jobs:
           git config user.name "Claude Code Bot"
           git config user.email "claude-code-bot@whispersofflame.dev"
           git add -A
-          git diff-index --quiet HEAD || git commit -m "fix: Auto-fix by Claude Code Review
+          # Only commit if there are changes
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "fix: Auto-fix by Claude Code Review
 
-          🤖 Automated fixes applied based on SDD review comments
+            🤖 Automated fixes applied based on SDD review comments
 
-          - Applied type safety improvements
-          - Fixed naming conventions
-          - Added missing documentation
-          - Resolved linting issues
+            - Applied type safety improvements
+            - Fixed naming conventions
+            - Added missing documentation
+            - Resolved linting issues
 
-          Co-Authored-By: Claude Code <claude-code@anthropic.com>"
-          git push || true
+            Co-Authored-By: Claude Code <claude-code@anthropic.com>"
+            git push
+          else
+            echo "No changes to commit"
+          fi
 
   # Secondary job for detailed SDD analysis
   sdd-deep-analysis:
@@ -252,17 +259,19 @@ jobs:
         working-directory: ./client
         run: npm ci
 
-      - name: Analyze code complexity
-        working-directory: ./client
-        run: |
-          npx ts-node ../scripts/analyze-complexity.ts > complexity-report.json || echo "{}" > complexity-report.json
-        continue-on-error: true
+      # Scripts analyze-complexity.ts and check-architecture.ts are currently missing.
+      # Disabling these steps until scripts are implemented.
+      # - name: Analyze code complexity
+      #   working-directory: ./client
+      #   run: |
+      #     npx ts-node ../scripts/analyze-complexity.ts > complexity-report.json || echo "{}" > complexity-report.json
+      #   continue-on-error: true
 
-      - name: Check for architectural violations
-        working-directory: ./client
-        run: |
-          npx ts-node ../scripts/check-architecture.ts > architecture-report.json || echo "{}" > architecture-report.json
-        continue-on-error: true
+      # - name: Check for architectural violations
+      #   working-directory: ./client
+      #   run: |
+      #     npx ts-node ../scripts/check-architecture.ts > architecture-report.json || echo "{}" > architecture-report.json
+      #   continue-on-error: true
 
       - name: Post detailed analysis
         uses: actions/github-script@v7

@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "agent-collab": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/workspaces/WhispersofFlame/mcp-agent-collab/dist/index.js"],
+      "env": {}
+    }
+  }
+}

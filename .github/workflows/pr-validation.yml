@@ -31,9 +31,11 @@ jobs:
         run: npm ci
 
       - name: Type checking (Strict Mode)
+        id: type-check
         run: npm run type-check
 
       - name: Lint - Enforce SDD Rules
+        id: lint
         run: npm run lint
 
       - name: Check for forbidden 'any' types
@@ -44,6 +46,7 @@ jobs:
         run: npm run format:check
 
       - name: Run tests
+        id: test
         run: npm run test:ci
 
       - name: Check test coverage
@@ -66,6 +69,7 @@ jobs:
         continue-on-error: true
 
       - name: Build project
+        id: build
         run: npm run build
 
       - name: Upload test results
@@ -88,10 +92,10 @@ jobs:
 
             let body = '## 🔍 PR Validation Results\n\n';
             body += '### ✅ SEAM-Driven Development Checks\n\n';
-            body += '- Type checking: Passed\n';
-            body += '- Linting: Passed\n';
-            body += '- Tests: Passed\n';
-            body += '- Build: Passed\n\n';
+            body += `- Type checking: ${{ steps.type-check.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n`;
+            body += `- Linting: ${{ steps.lint.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n`;
+            body += `- Tests: ${{ steps.test.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n`;
+            body += `- Build: ${{ steps.build.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n\\n`;
 
             if (coverage) {
               const total = coverage.total;
@@ -104,7 +108,7 @@ jobs:
 
             body += '**Note:** Some SDD validations are warnings only and will not block the PR.\n';
 
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,

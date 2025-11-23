@@ -183,6 +183,13 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Find all Mock implementations
+        id: find-mocks
+        run: |
+          echo "mocks<<EOF" >> $GITHUB_OUTPUT
+          find src \( -name "*.mock.ts" -o -name "*Mock*.ts" \) ! -name "*.spec.ts" >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Find all interfaces
         id: find-interfaces
         run: |
