@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { GameStateService } from './game-state.service';
+import { MockGameStateService } from './mocks/mock-game-state.service';
 import { GAME_STATE_SERVICE } from './tokens';
 import { IGameStateService } from '@contracts/interfaces/IGameStateService';
 
@@ -9,7 +10,7 @@ describe('GameStateService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: GAME_STATE_SERVICE, useClass: GameStateService }
+        { provide: GAME_STATE_SERVICE, useClass: MockGameStateService }
       ]
     });
     service = TestBed.inject(GAME_STATE_SERVICE);
@@ -21,23 +22,24 @@ describe('GameStateService', () => {
 
   describe('createRoom', () => {
     it('should create a room with a 6-character code', async () => {
-      try {
-        const room = await service.createRoom('Host');
-        expect(room.code.length).toBe(6);
-      } catch (e) {
-        expect(e).toBeDefined();
-      }
+      const room = await service.createRoom('Host');
+      expect(room).toBeDefined();
+      expect(room.code.length).toBe(6);
+      expect(room.players.length).toBe(1);
+      expect(room.players[0].name).toBe('Host');
     });
   });
 
   describe('joinRoom', () => {
     it('should throw error if room does not exist', async () => {
-      try {
-        await service.joinRoom('INVALID', 'Player');
-        throw new Error('Should have thrown');
-      } catch (e) {
-        expect(e).toBeDefined();
-      }
+      await expect(service.joinRoom('INVALID', 'Player')).rejects.toThrow();
+    });
+
+    it('should join an existing room', async () => {
+      const room = await service.createRoom('Host');
+      const updatedRoom = await service.joinRoom(room.code, 'Player2');
+      expect(updatedRoom.players.length).toBe(2);
+      expect(updatedRoom.players[1].name).toBe('Player2');
     });
   });
 });

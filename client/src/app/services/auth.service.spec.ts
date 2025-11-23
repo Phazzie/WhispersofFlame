@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
+import { MockAuthService } from './mocks/mock-auth.service';
 import { AUTH_SERVICE } from './tokens';
 import { IAuthService } from '@contracts/interfaces/IAuthService';
 
@@ -9,7 +10,7 @@ describe('AuthService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: AUTH_SERVICE, useClass: AuthService }
+        { provide: AUTH_SERVICE, useClass: MockAuthService }
       ]
     });
     service = TestBed.inject(AUTH_SERVICE);
@@ -21,32 +22,23 @@ describe('AuthService', () => {
 
   describe('loginAnonymously', () => {
     it('should return a user profile with the given display name', async () => {
-      try {
-        await service.loginAnonymously('TestUser');
-        throw new Error('Should have thrown error');
-      } catch (e) {
-        expect(e).toBeDefined(); // Currently fails as expected
-      }
+      const user = await service.loginAnonymously('TestUser');
+      expect(user).toBeDefined();
+      expect(user.displayName).toBe('TestUser');
+      expect(user.id).toBeDefined();
     });
 
     it('should throw error for empty display name', async () => {
-      try {
-        await service.loginAnonymously('');
-        throw new Error('Should have thrown error');
-      } catch (e) {
-        expect(e).toBeDefined();
-      }
+      await expect(service.loginAnonymously('')).rejects.toThrow();
     });
   });
 
   describe('logout', () => {
     it('should clear the session', async () => {
-      try {
-        await service.logout();
-        throw new Error('Should have thrown error');
-      } catch (e) {
-        expect(e).toBeDefined();
-      }
+      await service.loginAnonymously('TestUser');
+      await service.logout();
+      const isAuthenticated = await service.checkSession();
+      expect(isAuthenticated).toBe(false);
     });
   });
 });
