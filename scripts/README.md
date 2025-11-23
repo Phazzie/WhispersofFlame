@@ -104,7 +104,7 @@ npm install -D ts-node glob typescript
 ## Output Examples
 
 ### Mock-Real Parity
-```
+```text
 🔍 Validating Mock-Real Parity...
 
 📊 Found 5 Mock-Real pairs
@@ -117,7 +117,7 @@ npm install -D ts-node glob typescript
 ```
 
 ### Top-Level Comments
-```
+```text
 📝 Validating top-level comments...
 
 📊 Checked 23 TypeScript files
@@ -131,7 +131,7 @@ npm install -D ts-node glob typescript
 ```
 
 ### God Classes
-```
+```text
 🔍 Checking for God Classes...
 
 📊 Analyzed 18 classes

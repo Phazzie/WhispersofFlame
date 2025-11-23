@@ -38,14 +38,14 @@ jobs:
         id: find-mocks
         run: |
           echo "mocks<<EOF" >> $GITHUB_OUTPUT
-          find src -name "*.mock.ts" -o -name "*Mock*.ts" | grep -v ".spec.ts" >> $GITHUB_OUTPUT || true
+          find src \( -name "*.mock.ts" -o -name "*Mock*.ts" \) ! -name "*.spec.ts" >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Find all Real implementations
         id: find-real
         run: |
           echo "real<<EOF" >> $GITHUB_OUTPUT
-          find src -name "*.service.ts" -o -name "*Real*.ts" | grep -v ".spec.ts" | grep -v ".mock.ts" >> $GITHUB_OUTPUT || true
+          find src \( -name "*.service.ts" -o -name "*Real*.ts" \) ! -name "*.spec.ts" ! -name "*.mock.ts" >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Mock tests

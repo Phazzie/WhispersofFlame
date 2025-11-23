@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 /**
  * WHAT: Validates top-level comments in TypeScript files
  * WHY: SDD requires all files to have WHAT/WHY/HOW documentation
@@ -36,7 +36,12 @@ function validateFileComment(filePath: string): CommentValidationResult {
 
   // Look for multi-line comment or JSDoc
   const hasMultiLineComment = /\/\*\*?[\s\S]*?\*\//.test(headerLines);
-  const hasSingleLineComments = lines.slice(0, 10).filter(l => l.trim().startsWith('//')).length >= 3;
+  
+  // For single-line comments, look for explicit WHAT/WHY/HOW markers
+  const singleLineComments = lines.slice(0, 15).filter(l => l.trim().startsWith('//')).join('\n').toLowerCase();
+  const hasSingleLineComments = /\/\/.*what[:\s-]/.test(singleLineComments) &&
+                                 /\/\/.*why[:\s-]/.test(singleLineComments) &&
+                                 /\/\/.*how[:\s-]/.test(singleLineComments);
 
   result.hasComment = hasMultiLineComment || hasSingleLineComments;
 

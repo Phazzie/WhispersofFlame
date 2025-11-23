@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 /**
  * WHAT: Calculates Contract Compliance Rate (CCR)
  * WHY: Ensures Mock and Real implementations are behaviorally identical
@@ -13,6 +13,19 @@ interface TestResult {
   test: string;
   passed: boolean;
   error?: string;
+}
+
+interface VitestSuite {
+  name: string;
+  assertionResults?: Array<{
+    title: string;
+    status: string;
+    failureMessages?: string[];
+  }>;
+}
+
+interface VitestOutput {
+  testResults?: VitestSuite[];
 }
 
 interface CCRReport {
@@ -34,14 +47,14 @@ function loadTestResults(filePath: string): TestResult[] {
 
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(content);
+    const data = JSON.parse(content) as VitestOutput;
 
     // Parse Vitest JSON output
     const results: TestResult[] = [];
 
     if (data.testResults) {
-      data.testResults.forEach((suite: any) => {
-        suite.assertionResults?.forEach((test: any) => {
+      data.testResults.forEach((suite) => {
+        suite.assertionResults?.forEach((test) => {
           results.push({
             suite: suite.name,
             test: test.title,

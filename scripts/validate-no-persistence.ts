@@ -17,6 +17,11 @@ interface PersistenceViolation {
 }
 
 function checkFileForPersistence(filePath: string): PersistenceViolation[] {
+  // Skip test and mock files early
+  if (filePath.includes('.spec.') || filePath.includes('.test.') || filePath.includes('.mock.')) {
+    return [];
+  }
+
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.split('\n');
   const violations: PersistenceViolation[] = [];
@@ -58,11 +63,6 @@ function checkFileForPersistence(filePath: string): PersistenceViolation[] {
   ];
 
   lines.forEach((line, index) => {
-    // Skip test and mock files
-    if (filePath.includes('.spec.') || filePath.includes('.test.') || filePath.includes('.mock.')) {
-      return;
-    }
-
     patterns.forEach(({ regex, issue }) => {
       if (regex.test(line)) {
         violations.push({
