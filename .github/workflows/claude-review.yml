@@ -135,44 +135,82 @@ jobs:
             core.setOutput('review-prompt', reviewPrompt);
             core.setOutput('files-to-review', JSON.stringify(changedFiles));
 
+            // Call Claude API
+            if (process.env.ANTHROPIC_API_KEY) {
+              try {
+                console.log('Calling Claude API...');
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                  method: 'POST',
+                  headers: {
+                    'x-api-key': process.env.ANTHROPIC_API_KEY,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    model: 'claude-3-5-sonnet-20241022',
+                    max_tokens: 4096,
+                    messages: [{ role: 'user', content: reviewPrompt }]
+                  })
+                });
+
+                if (!response.ok) {
+                  throw new Error(`API call failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const reviewContent = data.content[0].text;
+                // Escape backticks for GitHub Actions output
+                const safeReviewContent = reviewContent.replace(/`/g, '\\`');
+                core.setOutput('review-content', safeReviewContent);
+                console.log('Claude API call successful');
+              } catch (error) {
+                console.error('Error calling Claude API:', error);
+                // Don't fail the build, just log error
+                console.log('Continuing without AI review...');
+              }
+            } else {
+              console.log('ANTHROPIC_API_KEY not set, skipping API call');
+            }
+
             return { success: true };
 
       - name: Post review comments
         uses: actions/github-script@v7
         with:
           script: |
-            // This is a placeholder for Claude API integration
-            // In production, you would:
-            // 1. Call Claude API with the review prompt
-            // 2. Parse the response
-            // 3. Create review comments on specific lines
-            // 4. Post summary comment
+            const reviewContent = `${{ steps.claude-review.outputs.review-content }}`;
+            
+            let body = '';
+            if (reviewContent && reviewContent !== 'undefined') {
+              body = reviewContent.replace(/\\`/g, '`');
+            } else {
+              // Fallback if API call failed or key missing
+              body = `## 🤖 Claude Code Review
 
-            const reviewSummary = `## 🤖 Claude Code Review
+              **Review Status:** Skipped (API Key missing or API call failed)
 
-            **Review Status:** In Progress
+              This PR was queued for automated Claude Code review, but the AI service could not be reached.
 
-            This PR has been queued for automated Claude Code review.
+              ### SDD Compliance Checks:
+              - ⏳ Type safety analysis
+              - ⏳ Naming conventions
+              - ⏳ Mock-Real parity
+              - ⏳ God Classes detection
+              - ⏳ Security scan
+              - ⏳ Documentation completeness
 
-            ### SDD Compliance Checks:
-            - ⏳ Type safety analysis
-            - ⏳ Naming conventions
-            - ⏳ Mock-Real parity
-            - ⏳ God Classes detection
-            - ⏳ Security scan
-            - ⏳ Documentation completeness
+              **Note:** To trigger a fix for review comments, reply with \`@claude-code fix\` on any comment.
 
-            **Note:** To trigger a fix for review comments, reply with \`@claude-code fix\` on any comment.
-
-            ---
-            *Powered by Claude Code - SEAM-Driven Development Enforcement*
-            `;
+              ---
+              *Powered by Claude Code - SEAM-Driven Development Enforcement*
+              `;
+            }
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: reviewSummary
+              body: body
             });
 
       - name: Auto-fix issues (if requested)
@@ -212,8 +250,8 @@ jobs:
         if: contains(github.event.comment.body, '@claude-code fix')
         working-directory: ./client
         run: |
-          npm run lint -- --fix || echo "Lint fixes failed"
-          npm run format || echo "Format failed"
+          npm run lint -- --fix
+          npm run format
 
       - name: Commit and push fixes
         if: contains(github.event.comment.body, '@claude-code fix')
