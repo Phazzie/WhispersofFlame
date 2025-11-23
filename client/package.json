@@ -1,0 +1,69 @@
+{
+  "name": "client",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=verbose",
+    "test:coverage": "vitest run --coverage",
+    "test:mock": "vitest run --grep Mock",
+    "test:real": "vitest run --grep Real",
+    "test:nsfw-filter": "vitest run --grep NSFW",
+    "type-check": "tsc --noEmit",
+    "lint": "ng lint",
+    "lint:no-any": "eslint . --ext .ts --rule '@typescript-eslint/no-explicit-any: error'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate:naming": "ts-node ../scripts/validate-naming.ts",
+    "validate:comments": "ts-node ../scripts/validate-comments.ts",
+    "validate:mock-real-parity": "ts-node ../scripts/validate-mock-real-parity.ts",
+    "validate:god-classes": "ts-node ../scripts/validate-god-classes.ts",
+    "validate:no-persistence": "ts-node ../scripts/validate-no-persistence.ts",
+    "validate:interface-docs": "echo 'Interface docs validation not yet implemented'",
+    "validate:ember-tone": "echo 'Ember tone validation not yet implemented'",
+    "validate:docs-updated": "git diff --quiet docs/ || echo 'Documentation updated'",
+    "ccr:calculate": "ts-node ../scripts/calculate-ccr.ts"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@9.8.1",
+  "dependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.0.0",
+    "@angular/cli": "^21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "@angular/platform-browser-dynamic": "^21.0.0",
+    "@vitest/coverage-v8": "^4.0.8",
+    "eslint": "^9.0.0",
+    "glob": "^11.0.0",
+    "jsdom": "^27.1.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8",
+    "zone.js": "^0.15.1"
+  }
+}
