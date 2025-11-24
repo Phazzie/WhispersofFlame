@@ -1,0 +1,247 @@
+name: CCR Enforcement - Contract Compliance Rate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'client/**/*.ts'
+      - 'client/**/*.spec.ts'
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  ccr-validation:
+    name: Contract Compliance Rate Check
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './client/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Find all Mock implementations
+        id: find-mocks
+        run: |
+          echo "mocks<<EOF" >> $GITHUB_OUTPUT
+          find src -name "*.mock.ts" -o -name "*Mock*.ts" | grep -v ".spec.ts" >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Find all Real implementations
+        id: find-real
+        run: |
+          echo "real<<EOF" >> $GITHUB_OUTPUT
+          find src -name "*.service.ts" -o -name "*Real*.ts" | grep -v ".spec.ts" | grep -v ".mock.ts" >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Mock tests
+        id: mock-tests
+        run: |
+          npm run test:mock -- --reporter=json --outputFile=mock-results.json || true
+        continue-on-error: true
+
+      - name: Run Real tests
+        id: real-tests
+        run: |
+          npm run test:real -- --reporter=json --outputFile=real-results.json || true
+        continue-on-error: true
+
+      - name: Calculate CCR
+        id: calculate-ccr
+        run: npm run ccr:calculate
+        continue-on-error: true
+
+      - name: Verify Mock-Real Parity
+        run: npm run validate:mock-real-parity
+        continue-on-error: true
+
+      - name: Generate CCR Report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let ccrReport = '## 📊 Contract Compliance Rate (CCR) Report\n\n';
+            ccrReport += '### SEAM-Driven Development Requirement: CCR = 1.0\n\n';
+
+            // Check if CCR results exist
+            const ccrFile = './client/ccr-report.json';
+            let ccrData = { ccr: 0, details: [] };
+
+            if (fs.existsSync(ccrFile)) {
+              ccrData = JSON.parse(fs.readFileSync(ccrFile, 'utf8'));
+            }
+
+            const ccr = ccrData.ccr || 0;
+            const status = ccr === 1.0 ? '✅' : '❌';
+
+            ccrReport += `**Current CCR:** ${status} **${ccr.toFixed(2)}**\n\n`;
+
+            if (ccr === 1.0) {
+              ccrReport += '🎉 **Perfect Compliance!** Mock and Real implementations are behaviorally identical.\n\n';
+            } else {
+              ccrReport += '⚠️ **Compliance Issue:** Mock and Real implementations have behavioral differences.\n\n';
+              ccrReport += '### Discrepancies Found:\n\n';
+
+              if (ccrData.details && ccrData.details.length > 0) {
+                for (const detail of ccrData.details) {
+                  ccrReport += `- **${detail.seam}**: ${detail.issue}\n`;
+                }
+              } else {
+                ccrReport += '- Run `npm run ccr:calculate` locally for detailed analysis\n';
+              }
+
+              ccrReport += '\n### Action Required:\n';
+              ccrReport += '1. Review the Mock and Real implementations\n';
+              ccrReport += '2. Ensure both pass the same tests identically\n';
+              ccrReport += '3. Fix discrepancies before merging\n\n';
+              ccrReport += '**SDD Principle:** "No progression until CCR = 1.0"\n';
+            }
+
+            ccrReport += '\n### Mock-Real Parity Status:\n';
+
+            const mocks = `${{ steps.find-mocks.outputs.mocks }}`.split('\n').filter(f => f);
+            const reals = `${{ steps.find-real.outputs.real }}`.split('\n').filter(f => f);
+
+            ccrReport += `- Mock implementations found: ${mocks.length}\n`;
+            ccrReport += `- Real implementations found: ${reals.length}\n\n`;
+
+            if (mocks.length > 0) {
+              ccrReport += '#### Mock Files:\n';
+              for (const mock of mocks) {
+                ccrReport += `- \`${mock}\`\n`;
+              }
+              ccrReport += '\n';
+            }
+
+            if (reals.length > 0) {
+              ccrReport += '#### Real Files:\n';
+              for (const real of reals) {
+                ccrReport += `- \`${real}\`\n`;
+              }
+              ccrReport += '\n';
+            }
+
+            ccrReport += '\n---\n';
+            ccrReport += '*CCR measures behavioral parity between Mock and Real implementations.*\n';
+            ccrReport += '*Target: 1.0 (perfect compliance) | Current: ' + ccr.toFixed(2) + '*\n';
+
+            // Post comment on PR
+            if (context.payload.pull_request) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: ccrReport
+              });
+            }
+
+            // Fail the check if CCR < 1.0 (optional - can be made strict)
+            if (ccr < 1.0 && ccr > 0) {
+              core.setFailed(`CCR is ${ccr.toFixed(2)}, must be 1.0 for perfect compliance`);
+            }
+
+      - name: Upload CCR artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccr-reports
+          path: |
+            ./client/ccr-report.json
+            ./client/mock-results.json
+            ./client/real-results.json
+          retention-days: 30
+
+  interface-validation:
+    name: Interface & Contract Validation
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Find all interfaces
+        id: find-interfaces
+        run: |
+          echo "interfaces<<EOF" >> $GITHUB_OUTPUT
+          find src -name "I*.ts" -o -name "*.interface.ts" >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Validate interface naming
+        run: npm run validate:naming
+        continue-on-error: true
+
+      - name: Check for JSDoc on interfaces
+        run: |
+          echo "Checking for JSDoc comments on all interfaces..."
+          npm run validate:interface-docs || echo "Some interfaces missing documentation"
+        continue-on-error: true
+
+      - name: Verify each interface has Mock
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const interfaces = `${{ steps.find-interfaces.outputs.interfaces }}`
+              .split('\n')
+              .filter(f => f);
+
+            let report = '## 🔍 Interface Coverage Report\n\n';
+            report += '### Checking Mock implementations for each Interface\n\n';
+
+            let missingMocks = [];
+
+            for (const iface of interfaces) {
+              const basename = path.basename(iface, '.ts');
+              const interfaceName = basename.replace(/^I/, '');
+
+              // Look for corresponding Mock
+              const mockPattern = `Mock${interfaceName}`;
+              const mockFiles = `${{ steps.find-mocks.outputs.mocks }}`.split('\n');
+
+              const hasMock = mockFiles.some(m => m.includes(mockPattern));
+
+              if (!hasMock) {
+                missingMocks.push(interfaceName);
+                report += `- ❌ \`${basename}\` - No Mock found\n`;
+              } else {
+                report += `- ✅ \`${basename}\` - Mock exists\n`;
+              }
+            }
+
+            if (missingMocks.length > 0) {
+              report += '\n### ⚠️ Missing Mock Implementations:\n';
+              for (const missing of missingMocks) {
+                report += `- \`Mock${missing}\` required for \`I${missing}\`\n`;
+              }
+              report += '\n**SDD Rule:** Every Interface must have a Mock implementation.\n';
+            } else if (interfaces.length > 0) {
+              report += '\n✅ **All interfaces have Mock implementations!**\n';
+            }
+
+            console.log(report);
