@@ -116,8 +116,8 @@ async function main(): Promise<void> {
   console.log(' * HOW: High-level approach or architecture notes');
   console.log(' */\n');
 
-  // Warning only, don't fail the build
-  process.exit(0);
+  // Fail the build if any files are invalid to enforce documentation standards
+  process.exit(1);
 }
 
 main().catch(error => {

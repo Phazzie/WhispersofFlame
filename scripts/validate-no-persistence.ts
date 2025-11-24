@@ -125,9 +125,9 @@ async function main(): Promise<void> {
   console.log('   • All game state must be ephemeral');
   console.log('');
 
-  // Warning only, manual review needed
-  console.log('⚠️  These are potential issues. Please review each case manually.');
-  process.exit(0);
+  // Fail the build if any files are invalid to enforce privacy rules
+  console.log('⚠️  These are potential issues. Please review each case manually and fail the build.');
+  process.exit(1);
 }
 
 main().catch(error => {
