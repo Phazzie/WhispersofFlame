@@ -113,8 +113,8 @@ async function main(): Promise<void> {
   console.log('   • Real implementations: *Real*.ts with class Real* name (when Mock exists)');
   console.log('');
 
-  // Warning only
-  process.exit(0);
+  // Fail the build to strictly enforce naming conventions
+  process.exit(1);
 }
 
 main().catch(error => {

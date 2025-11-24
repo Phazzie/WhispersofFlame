@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { IGameStateService } from '@contracts/interfaces/IGameStateService';
 import { GameRoom, GameStep, SpicyLevel } from '@contracts/types/Game';
 
@@ -28,7 +28,7 @@ export class MockGameStateService implements IGameStateService {
     if (roomCode === 'INVALID') throw new Error('Room not found');
     const room = this._gameState.value;
     if (!room) throw new Error('No active room in mock');
-    
+
     const newPlayer = { id: 'player-2', name: playerName, isHost: false, isReady: false };
     const updatedRoom = { ...room, players: [...room.players, newPlayer] };
     this._gameState.next(updatedRoom);
@@ -45,7 +45,11 @@ export class MockGameStateService implements IGameStateService {
     if (room) this._gameState.next({ ...room, spicyLevel: level });
   }
 
-  async submitAnswer(roomCode: string, playerId: string, text: string): Promise<void> {
-    // Mock implementation
+  async submitAnswer(_roomCode: string, _playerId: string, _text: string): Promise<void> {
+    void _roomCode;
+    void _playerId;
+    void _text;
+    // In a real app, we'd update the game state here
+    // For mock, we just resolve
   }
 }

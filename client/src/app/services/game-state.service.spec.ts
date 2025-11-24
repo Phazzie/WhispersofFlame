@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { GameStateService } from './game-state.service';
 import { MockGameStateService } from './mocks/mock-game-state.service';
 import { GAME_STATE_SERVICE } from './tokens';
 import { IGameStateService } from '@contracts/interfaces/IGameStateService';

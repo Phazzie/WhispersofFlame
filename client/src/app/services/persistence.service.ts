@@ -6,15 +6,18 @@ import { GameRoom } from '@contracts/types/Game';
   providedIn: 'root'
 })
 export class PersistenceService implements IPersistenceService {
-  async saveGame(room: GameRoom): Promise<void> {
+  async saveGame(_room: GameRoom): Promise<void> {
+    void _room;
     throw new Error('Method not implemented.');
   }
 
-  async getGame(roomCode: string): Promise<GameRoom | null> {
+  async getGame(_roomCode: string): Promise<GameRoom | null> {
+    void _roomCode;
     throw new Error('Method not implemented.');
   }
 
-  async deleteGame(roomCode: string): Promise<void> {
+  async deleteGame(_roomCode: string): Promise<void> {
+    void _roomCode;
     throw new Error('Method not implemented.');
   }
 }

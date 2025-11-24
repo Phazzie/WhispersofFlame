@@ -7,15 +7,20 @@ import { SpicyLevel } from '@contracts/types/Game';
   providedIn: 'root'
 })
 export class AIService implements IAIService {
-  async generateQuestion(categories: string[], spicyLevel: SpicyLevel, previousQuestions: string[]): Promise<AIResponse> {
+  async generateQuestion(_categories: string[], _spicyLevel: SpicyLevel, _previousQuestions: string[]): Promise<AIResponse> {
+    void _categories;
+    void _spicyLevel;
+    void _previousQuestions;
     throw new Error('Method not implemented.');
   }
 
-  async generateSummary(qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
+  async generateSummary(_qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
+    void _qaPairs;
     throw new Error('Method not implemented.');
   }
 
-  async generateTherapistNotes(qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
+  async generateTherapistNotes(_qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
+    void _qaPairs;
     throw new Error('Method not implemented.');
   }
 }

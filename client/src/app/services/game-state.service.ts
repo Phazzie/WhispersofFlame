@@ -9,23 +9,33 @@ import { GameRoom, GameStep, SpicyLevel } from '@contracts/types/Game';
 export class GameStateService implements IGameStateService {
   gameState$: Observable<GameRoom | null> = of(null);
 
-  async createRoom(hostName: string): Promise<GameRoom> {
+  async createRoom(_hostName: string): Promise<GameRoom> {
+    void _hostName;
     throw new Error('Method not implemented.');
   }
 
-  async joinRoom(roomCode: string, playerName: string): Promise<GameRoom> {
+  async joinRoom(_roomCode: string, _playerName: string): Promise<GameRoom> {
+    void _roomCode;
+    void _playerName;
     throw new Error('Method not implemented.');
   }
 
-  async updateStep(roomCode: string, step: GameStep): Promise<void> {
+  async updateStep(_roomCode: string, _step: GameStep): Promise<void> {
+    void _roomCode;
+    void _step;
     throw new Error('Method not implemented.');
   }
 
-  async setSpicyLevel(roomCode: string, level: SpicyLevel): Promise<void> {
+  async setSpicyLevel(_roomCode: string, _level: SpicyLevel): Promise<void> {
+    void _roomCode;
+    void _level;
     throw new Error('Method not implemented.');
   }
 
-  async submitAnswer(roomCode: string, playerId: string, text: string): Promise<void> {
+  async submitAnswer(_roomCode: string, _playerId: string, _text: string): Promise<void> {
+    void _roomCode;
+    void _playerId;
+    void _text;
     throw new Error('Method not implemented.');
   }
 }

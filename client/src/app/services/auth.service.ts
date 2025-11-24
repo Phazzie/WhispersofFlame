@@ -9,7 +9,8 @@ import { AuthState, UserProfile } from '@contracts/types/User';
 export class AuthService implements IAuthService {
   authState$: Observable<AuthState> = of({ isAuthenticated: false });
 
-  async loginAnonymously(displayName: string): Promise<UserProfile> {
+  async loginAnonymously(_displayName: string): Promise<UserProfile> {
+    void _displayName;
     throw new Error('Method not implemented.');
   }
 

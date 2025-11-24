@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { IAuthService } from '@contracts/interfaces/IAuthService';
 import { AuthState, UserProfile } from '@contracts/types/User';
 

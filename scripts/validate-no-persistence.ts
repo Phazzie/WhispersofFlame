@@ -17,6 +17,11 @@ interface PersistenceViolation {
 }
 
 function checkFileForPersistence(filePath: string): PersistenceViolation[] {
+  // Skip test and mock files early
+  if (filePath.includes('.spec.') || filePath.includes('.test.') || filePath.includes('.mock.')) {
+    return [];
+  }
+
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.split('\n');
   const violations: PersistenceViolation[] = [];
@@ -58,11 +63,6 @@ function checkFileForPersistence(filePath: string): PersistenceViolation[] {
   ];
 
   lines.forEach((line, index) => {
-    // Skip test and mock files
-    if (filePath.includes('.spec.') || filePath.includes('.test.') || filePath.includes('.mock.')) {
-      return;
-    }
-
     patterns.forEach(({ regex, issue }) => {
       if (regex.test(line)) {
         violations.push({
@@ -125,9 +125,9 @@ async function main(): Promise<void> {
   console.log('   • All game state must be ephemeral');
   console.log('');
 
-  // Warning only, manual review needed
-  console.log('⚠️  These are potential issues. Please review each case manually.');
-  process.exit(0);
+  // Fail the build if any files are invalid to enforce privacy rules
+  console.log('⚠️  These are potential issues. Please review each case manually and fail the build.');
+  process.exit(1);
 }
 
 main().catch(error => {
