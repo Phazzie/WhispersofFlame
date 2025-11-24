@@ -956,3 +956,365 @@ export function testResourceProviderContract(
     });
   });
 }
+export function testCollaborationStoreContract(
+  implementationName: string,
+  createStore: () => ICollaborationStore
+) {
+  describe(`ICollaborationStore Contract: ${implementationName}`, () => {
+    let store: ICollaborationStore;
+
+    beforeEach(() => {
+      store = createStore();
+    });
+
+    // ==================== REVIEW OPERATIONS ====================
+
+    describe('Review Operations', () => {
+      it('should add and retrieve a review request', async () => {
+        const review = createReview('review-1');
+        const id = await store.addReviewRequest(review);
+
+        expect(id).toBe('review-1');
+
+        const retrieved = await store.getReviewRequest(id);
+        expect(retrieved).toEqual(review);
+      });
+
+      it('should return null for non-existent review', async () => {
+        const result = await store.getReviewRequest('non-existent');
+        expect(result).toBeNull();
+      });
+
+      it('should store multiple reviews', async () => {
+        const review1 = createReview('review-1');
+        const review2 = createReview('review-2', 'copilot');
+
+        await store.addReviewRequest(review1);
+        await store.addReviewRequest(review2);
+
+        const all = await store.getAllReviews();
+        expect(all).toHaveLength(2);
+        expect(all).toContainEqual(review1);
+        expect(all).toContainEqual(review2);
+      });
+
+      it('should clear old reviews keeping only recent N', async () => {
+        // Add 10 reviews
+        for (let i = 0; i < 10; i++) {
+          await store.addReviewRequest(createReview(`review-${i}`));
+        }
+
+        // Clear, keeping only 3
+        await store.clearOldReviews(3);
+
+        const remaining = await store.getAllReviews();
+        expect(remaining).toHaveLength(3);
+
+        // Should keep the most recent ones (7, 8, 9)
+        const ids = remaining.map(r => r.id);
+        expect(ids).toContain('review-7');
+        expect(ids).toContain('review-8');
+        expect(ids).toContain('review-9');
+      });
+    });
+
+    // ==================== HELP OPERATIONS ====================
+
+    describe('Help Operations', () => {
+      it('should add and retrieve a help request', async () => {
+        const help = createHelp('help-1');
+        const id = await store.addHelpRequest(help);
+
+        expect(id).toBe('help-1');
+
+        const retrieved = await store.getHelpRequest(id);
+        expect(retrieved).toEqual(help);
+      });
+
+      it('should return null for non-existent help request', async () => {
+        const result = await store.getHelpRequest('non-existent');
+        expect(result).toBeNull();
+      });
+
+      it('should store multiple help requests', async () => {
+        const help1 = createHelp('help-1');
+        const help2 = createHelp('help-2', 'claude');
+
+        await store.addHelpRequest(help1);
+        await store.addHelpRequest(help2);
+
+        const all = await store.getAllHelp();
+        expect(all).toHaveLength(2);
+        expect(all).toContainEqual(help1);
+        expect(all).toContainEqual(help2);
+      });
+
+      it('should clear old help requests keeping only recent N', async () => {
+        // Add 8 help requests
+        for (let i = 0; i < 8; i++) {
+          await store.addHelpRequest(createHelp(`help-${i}`));
+        }
+
+        // Clear, keeping only 2
+        await store.clearOldHelp(2);
+
+        const remaining = await store.getAllHelp();
+        expect(remaining).toHaveLength(2);
+
+        // Should keep the most recent ones (6, 7)
+        const ids = remaining.map(h => h.id);
+        expect(ids).toContain('help-6');
+        expect(ids).toContain('help-7');
+      });
+    });
+
+    // ==================== TASK OPERATIONS ====================
+
+    describe('Task Operations', () => {
+      it('should add a task progress entry', async () => {
+        const task = createTask('claude', 'Implement feature X');
+
+        await store.updateTaskProgress(task);
+
+        const all = await store.getAllTasks();
+        expect(all).toHaveLength(1);
+        expect(all[0]).toEqual(task);
+      });
+
+      it('should update existing task for same agent and task name', async () => {
+        const task1 = createTask('claude', 'Build UI', 'in_progress');
+        const task2 = createTask('claude', 'Build UI', 'completed');
+
+        await store.updateTaskProgress(task1);
+        await store.updateTaskProgress(task2);
+
+        const all = await store.getAllTasks();
+        expect(all).toHaveLength(1);
+        expect(all[0].status).toBe('completed');
+      });
+
+      it('should store separate tasks for different agents', async () => {
+        const task1 = createTask('claude', 'Build UI');
+        const task2 = createTask('copilot', 'Build UI');
+
+        await store.updateTaskProgress(task1);
+        await store.updateTaskProgress(task2);
+
+        const all = await store.getAllTasks();
+        expect(all).toHaveLength(2);
+      });
+
+      it('should store separate tasks for same agent, different task names', async () => {
+        const task1 = createTask('claude', 'Task A');
+        const task2 = createTask('claude', 'Task B');
+
+        await store.updateTaskProgress(task1);
+        await store.updateTaskProgress(task2);
+
+        const all = await store.getAllTasks();
+        expect(all).toHaveLength(2);
+      });
+
+      it('should clear only completed tasks', async () => {
+        await store.updateTaskProgress(createTask('claude', 'Task 1', 'completed'));
+        await store.updateTaskProgress(createTask('claude', 'Task 2', 'in_progress'));
+        await store.updateTaskProgress(createTask('copilot', 'Task 3', 'completed'));
+        await store.updateTaskProgress(createTask('copilot', 'Task 4', 'blocked'));
+
+        await store.clearCompletedTasks();
+
+        const remaining = await store.getAllTasks();
+        expect(remaining).toHaveLength(2);
+
+        const statuses = remaining.map(t => t.status);
+        expect(statuses).toContain('in_progress');
+        expect(statuses).toContain('blocked');
+        expect(statuses).not.toContain('completed');
+      });
+    });
+
+    // ==================== COORDINATION OPERATIONS ====================
+
+    describe('Coordination Operations', () => {
+      it('should add and retrieve coordination plans', async () => {
+        const plan = createPlan('plan-1');
+
+        const id = await store.addCoordinationPlan(plan);
+        expect(id).toBe('plan-1');
+
+        const all = await store.getAllPlans();
+        expect(all).toHaveLength(1);
+        expect(all[0]).toEqual(plan);
+      });
+
+      it('should store multiple coordination plans', async () => {
+        const plan1 = createPlan('plan-1', 'claude');
+        const plan2 = createPlan('plan-2', 'copilot');
+
+        await store.addCoordinationPlan(plan1);
+        await store.addCoordinationPlan(plan2);
+
+        const all = await store.getAllPlans();
+        expect(all).toHaveLength(2);
+        expect(all).toContainEqual(plan1);
+        expect(all).toContainEqual(plan2);
+      });
+    });
+
+    // ==================== CONTEXT OPERATIONS ====================
+
+    describe('Context Operations', () => {
+      it('should set and get a context variable', async () => {
+        await store.setContext('api_url', 'https://api.example.com');
+
+        const value = await store.getContext('api_url');
+        expect(value).toBe('https://api.example.com');
+      });
+
+      it('should return undefined for non-existent context key', async () => {
+        const value = await store.getContext('non-existent');
+        expect(value).toBeUndefined();
+      });
+
+      it('should store multiple context variables', async () => {
+        await store.setContext('key1', 'value1');
+        await store.setContext('key2', { nested: 'object' });
+        await store.setContext('key3', 123);
+
+        const all = await store.getAllContext();
+        expect(all).toEqual({
+          key1: 'value1',
+          key2: { nested: 'object' },
+          key3: 123,
+        });
+      });
+
+      it('should overwrite existing context key', async () => {
+        await store.setContext('key', 'old-value');
+        await store.setContext('key', 'new-value');
+
+        const value = await store.getContext('key');
+        expect(value).toBe('new-value');
+      });
+
+      it('should handle various data types in context', async () => {
+        const testCases = [
+          { key: 'string', value: 'hello' },
+          { key: 'number', value: 42 },
+          { key: 'boolean', value: true },
+          { key: 'null', value: null },
+          { key: 'array', value: [1, 2, 3] },
+          { key: 'object', value: { a: 1, b: 2 } },
+        ];
+
+        for (const testCase of testCases) {
+          await store.setContext(testCase.key, testCase.value);
+        }
+
+        for (const testCase of testCases) {
+          const value = await store.getContext(testCase.key);
+          expect(value).toEqual(testCase.value);
+        }
+      });
+    });
+  });
+}
+
+export function testIdGeneratorContract(
+  implementationName: string,
+  createGenerator: () => IIdGenerator
+) {
+  describe(`IIdGenerator Contract: ${implementationName}`, () => {
+    let generator: IIdGenerator;
+
+    beforeEach(() => {
+      generator = createGenerator();
+    });
+
+    // ==================== BASIC CONTRACT TESTS ====================
+
+    describe('Basic Functionality', () => {
+      it('should return a string from generate()', () => {
+        const id = generator.generate();
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+      });
+
+      it('should return different IDs on consecutive calls', () => {
+        const id1 = generator.generate();
+        const id2 = generator.generate();
+        expect(id1).not.toBe(id2);
+      });
+
+      it('should return different IDs for multiple calls', () => {
+        const id1 = generator.generate();
+        const id2 = generator.generate();
+        const id3 = generator.generate();
+        const id4 = generator.generate();
+        const id5 = generator.generate();
+
+        expect(new Set([id1, id2, id3, id4, id5]).size).toBe(5);
+      });
+    });
+
+    // ==================== UNIQUENESS GUARANTEE ====================
+
+    describe('Uniqueness Guarantee', () => {
+      it('should generate 100 unique IDs without collisions', () => {
+        const ids = new Set<string>();
+
+        for (let i = 0; i < 100; i++) {
+          const id = generator.generate();
+          expect(ids.has(id)).toBe(false);
+          ids.add(id);
+        }
+
+        expect(ids.size).toBe(100);
+      });
+
+      it('should generate 1000 unique IDs without collisions', () => {
+        const ids = new Set<string>();
+
+        for (let i = 0; i < 1000; i++) {
+          const id = generator.generate();
+          ids.add(id);
+        }
+
+        // All 1000 IDs should be unique
+        expect(ids.size).toBe(1000);
+      });
+
+      it('should maintain uniqueness within a single instance with many calls', () => {
+        const ids = new Set<string>();
+
+        // Generate many IDs from one instance
+        for (let i = 0; i < 200; i++) {
+          ids.add(generator.generate());
+        }
+
+        // Should have 200 unique IDs
+        expect(ids.size).toBe(200);
+      });
+    });
+
+    // ==================== FORMAT VALIDATION ====================
+
+    describe('Format Validation', () => {
+      it('should return non-empty strings', () => {
+        for (let i = 0; i < 10; i++) {
+          const id = generator.generate();
+          expect(id).toBeTruthy();
+          expect(id.length).toBeGreaterThan(0);
+        }
+      });
+
+      it('should return printable strings without control characters', () => {
+        for (let i = 0; i < 10; i++) {
+          const id = generator.generate();
+          // Should not contain common problematic characters
+          expect(id).not.toMatch(/[\n\r\t\0]/);
+        }
+      });
+    });
+  });
+}
