@@ -6,6 +6,7 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   template: `
     <h1>Hello, {{ title() }}</h1>
+    <p>CI/CD Test Trigger</p>
     <router-outlet />
   `,
   styles: [`
