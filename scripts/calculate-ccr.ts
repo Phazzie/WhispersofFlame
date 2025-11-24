@@ -180,7 +180,10 @@ async function main(): Promise<void> {
   console.log('\n⚠️  SDD Requirement: CCR must be 1.0 before progression');
   console.log(`   Report saved to: ${reportPath}\n`);
 
-  // Don't fail build, just report
+  // Fail build if CCR < 1.0 to strictly enforce SDD compliance
+  if (report.ccr < 1.0) {
+    process.exit(1);
+  }
   process.exit(0);
 }
 
