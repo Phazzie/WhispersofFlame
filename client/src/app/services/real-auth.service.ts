@@ -23,9 +23,7 @@ const NetlifyUserSchema = z.object({
   }).optional(),
 });
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class RealAuthService implements IAuthService {
   private authStateSubject = new BehaviorSubject<AuthState>({ isAuthenticated: false });
   authState$ = this.authStateSubject.asObservable();
@@ -108,8 +106,14 @@ export class RealAuthService implements IAuthService {
   async logout(): Promise<void> {
     return new Promise((resolve) => {
       if (netlifyIdentity.currentUser()) {
+        // Wait for the logout event before resolving
+        const onLogout = () => {
+          this.handleLogout();
+          resolve();
+        };
+        // Set up one-time listener for logout completion
+        netlifyIdentity.on('logout', onLogout);
         netlifyIdentity.logout();
-        resolve();
       } else {
         this.handleLogout();
         resolve();

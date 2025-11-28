@@ -15,6 +15,9 @@ jobs:
   ccr-validation:
     name: Contract Compliance Rate Check
     runs-on: ubuntu-latest
+    outputs:
+      mocks: ${{ steps.find-mocks.outputs.mocks }}
+      real: ${{ steps.find-real.outputs.real }}
 
     defaults:
       run:
@@ -169,6 +172,7 @@ jobs:
   interface-validation:
     name: Interface & Contract Validation
     runs-on: ubuntu-latest
+    needs: ccr-validation
 
     defaults:
       run:
@@ -229,7 +233,7 @@ jobs:
 
               // Look for corresponding Mock
               const mockPattern = `Mock${interfaceName}`;
-              const mockFiles = `${{ steps.find-mocks.outputs.mocks }}`.split('\n');
+              const mockFiles = `${{ needs.ccr-validation.outputs.mocks }}`.split('\n');
 
               const hasMock = mockFiles.some(m => m.includes(mockPattern));
 

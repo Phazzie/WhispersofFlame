@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IGameStateService } from '@contracts/interfaces/IGameStateService';
-import { GameRoom, GameStep, SpicyLevel } from '@contracts/types/Game';
+import { GameRoom, GameStep, SpicyLevel, Question } from '@contracts/types/Game';
 
 @Injectable()
 export class MockGameStateService implements IGameStateService {
@@ -51,5 +51,35 @@ export class MockGameStateService implements IGameStateService {
     void _text;
     // In a real app, we'd update the game state here
     // For mock, we just resolve
+  }
+
+  async setCategories(roomCode: string, categories: string[]): Promise<void> {
+    void roomCode;
+    const room = this._gameState.value;
+    if (room) this._gameState.next({ ...room, categories });
+  }
+
+  async generateNextQuestion(roomCode: string): Promise<Question> {
+    void roomCode;
+    const question: Question = {
+      id: 'mock-question-id',
+      text: 'What is one thing you appreciate about your partner that you rarely say out loud?',
+      category: 'Connection',
+      spicyLevel: 'Mild'
+    };
+    const room = this._gameState.value;
+    if (room) this._gameState.next({ ...room, currentQuestion: question });
+    return question;
+  }
+
+  getQAPairs(roomCode: string): { question: string; answers: string[] }[] {
+    void roomCode;
+    // Return mock Q&A pairs for testing
+    return [
+      {
+        question: 'What is one thing you appreciate about your partner?',
+        answers: ['Their kindness', 'Their sense of humor']
+      }
+    ];
   }
 }

@@ -49,4 +49,25 @@ export interface IGameStateService {
    * @param text The answer text.
    */
   submitAnswer(roomCode: string, playerId: string, text: string): Promise<void>;
+
+  /**
+   * Sets the selected categories for question generation.
+   * @param roomCode The room code.
+   * @param categories The selected categories.
+   */
+  setCategories(roomCode: string, categories: string[]): Promise<void>;
+
+  /**
+   * Generates the next AI question for the room.
+   * @param roomCode The room code.
+   * @returns The generated Question.
+   */
+  generateNextQuestion(roomCode: string): Promise<import('../types/Game').Question>;
+
+  /**
+   * Gets all Q&A pairs for summary generation.
+   * @param roomCode The room code.
+   * @returns Array of question/answers pairs.
+   */
+  getQAPairs(roomCode: string): { question: string; answers: string[] }[];
 }

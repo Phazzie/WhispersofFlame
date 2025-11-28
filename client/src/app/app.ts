@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet],
   template: `
-    <h1>Hello, {{ title() }}</h1>
-    <p>CI/CD Test Trigger</p>
     <router-outlet />
   `,
   styles: [`
@@ -15,6 +13,4 @@ import { RouterOutlet } from '@angular/router';
     }
   `]
 })
-export class App {
-  protected readonly title = signal('client');
-}
+export class App {}
