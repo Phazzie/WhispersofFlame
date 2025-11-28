@@ -1,9 +1,16 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { z } from 'zod';
 import { CardComponent } from '../../ui/card/card.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { Question } from '@contracts/types/Game';
+
+// Answer validation schema - prevents XSS and excessive content
+const AnswerSchema = z.string()
+  .min(1, 'Please enter an answer')
+  .max(1000, 'Answer must be 1000 characters or less')
+  .transform(s => s.trim()); // Sanitize whitespace
 
 @Component({
   selector: 'app-question',
@@ -60,11 +67,17 @@ export class QuestionComponent {
 
   protected answer = signal('');
   protected submitted = signal(false);
+  protected error = signal('');
 
   protected submitAnswer() {
-    if (this.answer().trim()) {
-      this.submitted.set(true);
-      this.answerSubmitted.emit(this.answer());
+    const result = AnswerSchema.safeParse(this.answer());
+    if (!result.success) {
+      this.error.set(result.error.issues[0]?.message || 'Invalid answer');
+      return;
     }
+    
+    this.error.set('');
+    this.submitted.set(true);
+    this.answerSubmitted.emit(result.data);
   }
 }

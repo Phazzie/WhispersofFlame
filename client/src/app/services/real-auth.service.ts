@@ -1,14 +1,23 @@
 /**
  * WHAT: Real implementation of the Authentication Service using Netlify Identity.
  * WHY: To provide secure, persistent user authentication.
- * HOW: Wraps the netlify-identity-widget SDK.
+ * HOW: Wraps the netlify-identity-widget SDK (dynamically loaded).
  */
 import { Injectable, NgZone, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IAuthService } from '@contracts/interfaces/IAuthService';
 import { AuthState, UserProfile } from '@contracts/types/User';
-import netlifyIdentity from 'netlify-identity-widget';
 import { z } from 'zod';
+
+// Interface for netlify-identity-widget module
+interface NetlifyIdentityModule {
+  init(): void;
+  open(): void;
+  close(): void;
+  logout(): void;
+  currentUser(): unknown;
+  on(event: 'login' | 'logout', callback: (user?: unknown) => void): void;
+}
 
 // Zod Schema for runtime validation of Netlify User Data
 const NetlifyUserSchema = z.object({
@@ -30,31 +39,42 @@ export class RealAuthService implements IAuthService {
   private authStateSubject = new BehaviorSubject<AuthState>({ isAuthenticated: false });
   authState$ = this.authStateSubject.asObservable();
   private readonly GUEST_KEY = 'wof_guest_user';
+  private netlifyIdentity: NetlifyIdentityModule | null = null;
+  private initPromise: Promise<void> | null = null;
 
   private ngZone = inject(NgZone);
 
   constructor() {
-    this.initNetlifyIdentity();
+    // Defer initialization - don't block initial load
+    this.initPromise = this.initNetlifyIdentity();
   }
 
-  private initNetlifyIdentity() {
-    netlifyIdentity.init();
+  private async initNetlifyIdentity(): Promise<void> {
+    try {
+      // Dynamic import to avoid bundling with initial chunk
+      const netlifyIdentityModule = await import('netlify-identity-widget');
+      this.netlifyIdentity = netlifyIdentityModule.default as unknown as NetlifyIdentityModule;
+      
+      this.netlifyIdentity.init();
 
-    netlifyIdentity.on('login', (user) => {
-      this.ngZone.run(() => {
-        this.handleNetlifyLogin(user);
-        netlifyIdentity.close();
+      this.netlifyIdentity.on('login', (user: unknown) => {
+        this.ngZone.run(() => {
+          this.handleNetlifyLogin(user);
+          this.netlifyIdentity?.close();
+        });
       });
-    });
 
-    netlifyIdentity.on('logout', () => {
-      this.ngZone.run(() => {
-        this.handleLogout();
+      this.netlifyIdentity.on('logout', () => {
+        this.ngZone.run(() => {
+          this.handleLogout();
+        });
       });
-    });
+    } catch (error) {
+      console.warn('Netlify Identity not available:', error);
+    }
   }
 
-  private handleNetlifyLogin(user: netlifyIdentity.User) {
+  private handleNetlifyLogin(user: unknown) {
     // Runtime validation using Zod
     const result = NetlifyUserSchema.safeParse(user);
 
@@ -110,9 +130,11 @@ export class RealAuthService implements IAuthService {
   }
 
   async logout(): Promise<void> {
+    await this.initPromise; // Ensure initialized
+    
     return new Promise((resolve) => {
-      if (netlifyIdentity.currentUser()) {
-        netlifyIdentity.logout();
+      if (this.netlifyIdentity?.currentUser()) {
+        this.netlifyIdentity.logout();
         resolve();
       } else {
         this.handleLogout();
@@ -122,8 +144,10 @@ export class RealAuthService implements IAuthService {
   }
 
   async checkSession(): Promise<boolean> {
+    await this.initPromise; // Ensure initialized
+    
     // 1. Check Netlify
-    const netlifyUser = netlifyIdentity.currentUser();
+    const netlifyUser = this.netlifyIdentity?.currentUser();
     if (netlifyUser) {
       this.handleNetlifyLogin(netlifyUser);
       return true;
@@ -147,7 +171,8 @@ export class RealAuthService implements IAuthService {
     return false;
   }
 
-  openLoginModal() {
-    netlifyIdentity.open();
+  async openLoginModal(): Promise<void> {
+    await this.initPromise; // Ensure initialized
+    this.netlifyIdentity?.open();
   }
 }

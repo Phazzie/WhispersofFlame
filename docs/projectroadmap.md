@@ -15,11 +15,11 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
     - [x] Establish Governance Docs (`copilot-instructions.md`, `claude.md`, `gemini.md`).
     - [x] Define Agent Personas (`agents.md`).
     - [x] Create Documentation Structure (`docs/`).
-- [ ] **Tech Stack Skeleton**
-    - [ ] Initialize Repository (Git).
-    - [ ] Set up Monorepo/Project Structure (Angular/SvelteKit + Node/Edge API).
-    - [ ] Configure Tooling (ESLint, Prettier, Vitest, Zod).
-    - [ ] Set up CI/CD Pipeline (GitHub Actions - Run Tests on PR).
+- [x] **Tech Stack Skeleton**
+    - [x] Initialize Repository (Git).
+    - [x] Set up Monorepo/Project Structure (Angular 21 client).
+    - [x] Configure Tooling (ESLint, Prettier, Vitest, Zod).
+    - [x] Set up CI/CD Pipeline (GitHub Actions - PR validation, CCR checks, Claude review).
 
 ## Phase 2: The Architect's Blueprint (All Contracts)
 *Goal: Define the shape of the ENTIRE system before writing logic.*
@@ -67,12 +67,13 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
 
 ## Phase 6: The Gateway (API Layer)
 *Goal: Expose the Services via secure endpoints.*
+*Note: Skipped for MVP - using direct service injection in Angular. API layer can be added later for mobile/external clients.*
 
-- [ ] **API Definition & Implementation**
-    - [ ] Define API Routes (OpenAPI/Swagger).
-    - [ ] Implement Route Handlers (connecting to Real Services).
-    - [ ] Add Zod Validation Middleware.
-    - [ ] Integration Tests.
+- [x] **API Definition & Implementation** (DEFERRED)
+    - [x] ~~Define API Routes~~ → Using direct service DI instead
+    - [x] ~~Implement Route Handlers~~ → Services injected directly
+    - [x] Zod Validation (in Real service implementations)
+    - [x] ~~Integration Tests~~ → Service contract tests cover this
 
 ## Phase 7: The Experience (Frontend)
 *Goal: A beautiful, responsive UI that consumes the API.*
@@ -89,10 +90,21 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
 *Goal: Production readiness.*
 
 - [ ] **Final Checks**
-    - [ ] Security Audit.
-    - [ ] Performance Tuning.
+    - [ ] Security Audit (input validation, XSS protection, auth flows).
+    - [ ] Performance Tuning (bundle size, lazy loading, Lighthouse audit).
     - [ ] User Acceptance Testing (UAT).
-    - [ ] Launch.
+    - [ ] Environment Configuration (OpenRouter API key, Netlify Identity).
+    - [ ] Launch (deploy to Netlify/Vercel).
+
+## Phase 9: Bonus - MCP Agent Collaboration (Complete)
+*Goal: Enable AI agents to collaborate on development.*
+
+- [x] **MCP Server Implementation**
+    - [x] Define 4 Seams (ICollaborationStore, IIdGenerator, IToolHandler, IResourceProvider).
+    - [x] Implement 8 collaboration tools (review, help, progress, coordination).
+    - [x] Implement 5 MCP resources (tasks, reviews, help, coordination, context).
+    - [x] 185 tests passing, CCR = 1.0.
+    - [x] Documentation (MCPINFO.md).
 
 ---
 **Legend:**

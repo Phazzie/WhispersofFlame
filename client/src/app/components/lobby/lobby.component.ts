@@ -2,11 +2,22 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { z } from 'zod';
 import { AUTH_SERVICE, GAME_STATE_SERVICE } from '../../tokens';
 import { UserProfile } from '@contracts/types/User';
 import { CardComponent } from '../ui/card/card.component';
 import { ButtonComponent } from '../ui/button/button.component';
 import { InputComponent } from '../ui/input/input.component';
+
+// Input validation schemas
+const DisplayNameSchema = z.string()
+  .min(1, 'Name is required')
+  .max(30, 'Name must be 30 characters or less')
+  .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Only letters, numbers, spaces, hyphens, and underscores allowed');
+
+const RoomCodeSchema = z.string()
+  .length(6, 'Room code must be 6 characters')
+  .regex(/^[A-Z0-9]+$/, 'Only uppercase letters and numbers allowed');
 
 @Component({
   selector: 'app-lobby',
@@ -25,6 +36,12 @@ import { InputComponent } from '../ui/input/input.component';
       
       <div class="w-full max-w-md">
         <app-card>
+          @if (error()) {
+            <div class="mb-4 p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+              {{ error() }}
+            </div>
+          }
+          
           @if (!(authService.authState$ | async)?.isAuthenticated) {
             <div class="space-y-6">
               <div class="text-center">
@@ -108,13 +125,39 @@ export class LobbyComponent {
 
   protected displayName = signal('');
   protected roomCode = signal('');
+  protected error = signal('');
+
+  /** Validate and sanitize display name */
+  private validateDisplayName(name: string): string | null {
+    const result = DisplayNameSchema.safeParse(name.trim());
+    if (!result.success) {
+      this.error.set(result.error.issues[0]?.message || 'Invalid name');
+      return null;
+    }
+    this.error.set('');
+    return result.data;
+  }
+
+  /** Validate room code format */
+  private validateRoomCode(code: string): string | null {
+    const result = RoomCodeSchema.safeParse(code.toUpperCase().trim());
+    if (!result.success) {
+      this.error.set(result.error.issues[0]?.message || 'Invalid room code');
+      return null;
+    }
+    this.error.set('');
+    return result.data;
+  }
 
   async login() {
-    if (!this.displayName()) return;
+    const validName = this.validateDisplayName(this.displayName());
+    if (!validName) return;
+
     try {
-      await this.authService.loginAnonymously(this.displayName());
+      await this.authService.loginAnonymously(validName);
     } catch (error) {
       console.error('Login failed:', error);
+      this.error.set('Login failed. Please try again.');
     }
   }
 
@@ -127,18 +170,23 @@ export class LobbyComponent {
       this.router.navigate(['/game', room.code]);
     } catch (error) {
       console.error('Create room failed:', error);
+      this.error.set('Failed to create room. Please try again.');
     }
   }
 
   async joinRoom() {
     const user = (await this.getUser());
-    if (!user || !this.roomCode()) return;
+    if (!user) return;
+
+    const validCode = this.validateRoomCode(this.roomCode());
+    if (!validCode) return;
 
     try {
-      const room = await this.gameStateService.joinRoom(this.roomCode(), user.displayName);
+      const room = await this.gameStateService.joinRoom(validCode, user.displayName);
       this.router.navigate(['/game', room.code]);
     } catch (error) {
       console.error('Join room failed:', error);
+      this.error.set('Room not found. Check the code and try again.');
     }
   }
 
