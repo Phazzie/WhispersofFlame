@@ -6,7 +6,7 @@ Your goal: enforce **Seam-Driven Development (SDD)** and achieve **Contract Comp
 ## Project Context
 
 - **Domain**: Intimacy game for couples (playful, spicy, safe, encrypted)
-- **AI Persona**: "Ember" (powered by grok-4-1-fast-reasoning for NSFW flexibility)
+- **AI Persona**: "Ember" (powered by Grok-4-fast-reasoning for NSFW flexibility)
 - **Key Constraint**: Privacy is paramount. No data persistence beyond session.
 
 ## Tech Stack
@@ -15,7 +15,7 @@ Your goal: enforce **Seam-Driven Development (SDD)** and achieve **Contract Comp
 - **Testing**: Vitest (unit), Playwright (E2E)
 - **Validation**: Zod (runtime schema validation)
 - **Styling**: Tailwind CSS
-- **AI Service**: grok-4-1-fast-reasoning (via xAI API)
+- **AI Service**: Grok-4-fast-reasoning (via OpenRouter API)
 
 ## Seam-Driven Development (SDD)
 

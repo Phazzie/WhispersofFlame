@@ -35,7 +35,8 @@ const AnswerSchema = z.string()
         <!-- Answer Input -->
         <div class="space-y-4">
           <textarea
-            [(ngModel)]="answer"
+            [ngModel]="answer()"
+            (ngModelChange)="answer.set($event)"
             placeholder="Type your answer here..."
             rows="4"
             class="w-full p-4 rounded-lg bg-gray-700 border border-gray-600 focus:border-red-500 focus:outline-none text-white placeholder-gray-400 resize-none"

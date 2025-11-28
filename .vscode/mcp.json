@@ -3,7 +3,7 @@
     "agent-collab": {
       "type": "stdio",
       "command": "node",
-      "args": ["/workspaces/WhispersofFlame/mcp-agent-collab/dist/index.js"],
+      "args": ["${workspaceFolder}/mcp-agent-collab/dist/index.js"],
       "env": {}
     }
   }

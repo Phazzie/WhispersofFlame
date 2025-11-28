@@ -15,11 +15,11 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
     - [x] Establish Governance Docs (`copilot-instructions.md`, `claude.md`, `gemini.md`).
     - [x] Define Agent Personas (`agents.md`).
     - [x] Create Documentation Structure (`docs/`).
-- [x] **Tech Stack Skeleton**
-    - [x] Initialize Repository (Git).
-    - [x] Set up Monorepo/Project Structure (Angular 21 client).
-    - [x] Configure Tooling (ESLint, Prettier, Vitest, Zod).
-    - [x] Set up CI/CD Pipeline (GitHub Actions - PR validation, CCR checks, Claude review).
+- [ ] **Tech Stack Skeleton**
+    - [ ] Initialize Repository (Git).
+    - [ ] Set up Monorepo/Project Structure (Angular/SvelteKit + Node/Edge API).
+    - [ ] Configure Tooling (ESLint, Prettier, Vitest, Zod).
+    - [ ] Set up CI/CD Pipeline (GitHub Actions - Run Tests on PR).
 
 ## Phase 2: The Architect's Blueprint (All Contracts)
 *Goal: Define the shape of the ENTIRE system before writing logic.*
@@ -37,74 +37,62 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
 ## Phase 3: The Tester's Gauntlet (All Tests)
 *Goal: Write the test suite for the entire application. All tests must fail (Red).*
 
-- [x] **Service Tests**
-    - [x] Write `AuthService.spec.ts`.
-    - [x] Write `GameStateService.spec.ts`.
-    - [x] Write `AIService.spec.ts`.
-    - [x] Write `PersistenceService.spec.ts`.
+- [ ] **Service Tests**
+    - [ ] Write `AuthService.spec.ts`.
+    - [ ] Write `GameStateService.spec.ts`.
+    - [ ] Write `AIService.spec.ts`.
+    - [ ] Write `PersistenceService.spec.ts`.
 
 ## Phase 4: The Simulation (All Mocks)
 *Goal: Implement Mocks to make all tests pass (Green - Mock).*
 
-- [x] **Service Mocks**
-    - [x] Implement `MockAuthService.ts`.
-    - [x] Implement `MockGameStateService.ts`.
-    - [x] Implement `MockAIService.ts`.
-    - [x] Implement `MockPersistenceService.ts`.
-- [x] **Verification**
-    - [x] Verify Contract Compliance Rate (CCR) = 1.0 for all Mocks.
+- [ ] **Service Mocks**
+    - [ ] Implement `MockAuthService.ts`.
+    - [ ] Implement `MockGameStateService.ts`.
+    - [ ] Implement `MockAIService.ts`.
+    - [ ] Implement `MockPersistenceService.ts`.
+- [ ] **Verification**
+    - [ ] Verify Contract Compliance Rate (CCR) = 1.0 for all Mocks.
 
 ## Phase 5: The Reality (All Implementations)
 *Goal: Replace Mocks with Real logic one by one (Green - Real).*
 
-- [x] **Service Implementations**
-    - [x] Implement `RealPersistenceService.ts` (DB Connection).
-    - [x] Implement `RealAIService.ts` (xAI grok-4-1-fast-reasoning Integration).
-    - [x] Implement `RealAuthService.ts` (OAuth/Session).
-    - [x] Implement `RealGameStateService.ts` (Core Logic).
-- [x] **Verification**
-    - [x] Verify CCR = 1.0 for all Real implementations.
+- [ ] **Service Implementations**
+    - [ ] Implement `RealPersistenceService.ts` (DB Connection).
+    - [ ] Implement `RealAIService.ts` (Grok-4 Integration).
+    - [ ] Implement `RealAuthService.ts` (OAuth/Session).
+    - [ ] Implement `RealGameStateService.ts` (Core Logic).
+- [ ] **Verification**
+    - [ ] Verify CCR = 1.0 for all Real implementations.
 
 ## Phase 6: The Gateway (API Layer)
 *Goal: Expose the Services via secure endpoints.*
-*Note: Skipped for MVP - using direct service injection in Angular. API layer can be added later for mobile/external clients.*
 
-- [x] **API Definition & Implementation** (DEFERRED)
-    - [x] ~~Define API Routes~~ → Using direct service DI instead
-    - [x] ~~Implement Route Handlers~~ → Services injected directly
-    - [x] Zod Validation (in Real service implementations)
-    - [x] ~~Integration Tests~~ → Service contract tests cover this
+- [ ] **API Definition & Implementation**
+    - [ ] Define API Routes (OpenAPI/Swagger).
+    - [ ] Implement Route Handlers (connecting to Real Services).
+    - [ ] Add Zod Validation Middleware.
+    - [ ] Integration Tests.
 
 ## Phase 7: The Experience (Frontend)
 *Goal: A beautiful, responsive UI that consumes the API.*
 
-- [x] **UI Component Library**
-    - [x] Setup Tailwind CSS Theme.
-    - [x] Build Atoms (Button, Input, Card, Loader).
-- [x] **Feature Implementation**
-    - [x] Lobby & Onboarding.
-    - [x] Game Loop (Question/Answer/Reveal).
-    - [x] Summary & Insights.
+- [ ] **UI Component Library**
+    - [ ] Setup Tailwind CSS Theme.
+    - [ ] Build Atoms (Button, Input, Card, Loader).
+- [ ] **Feature Implementation**
+    - [ ] Lobby & Onboarding.
+    - [ ] Game Loop (Question/Answer/Reveal).
+    - [ ] Summary & Insights.
 
 ## Phase 8: Polish & Launch
 *Goal: Production readiness.*
 
 - [ ] **Final Checks**
-    - [ ] Security Audit (input validation, XSS protection, auth flows).
-    - [ ] Performance Tuning (bundle size, lazy loading, Lighthouse audit).
+    - [ ] Security Audit.
+    - [ ] Performance Tuning.
     - [ ] User Acceptance Testing (UAT).
-    - [ ] Environment Configuration (xAI API key, Netlify Identity).
-    - [ ] Launch (deploy to Netlify/Vercel).
-
-## Phase 9: Bonus - MCP Agent Collaboration (Complete)
-*Goal: Enable AI agents to collaborate on development.*
-
-- [x] **MCP Server Implementation**
-    - [x] Define 4 Seams (ICollaborationStore, IIdGenerator, IToolHandler, IResourceProvider).
-    - [x] Implement 8 collaboration tools (review, help, progress, coordination).
-    - [x] Implement 5 MCP resources (tasks, reviews, help, coordination, context).
-    - [x] 185 tests passing, CCR = 1.0.
-    - [x] Documentation (MCPINFO.md).
+    - [ ] Launch.
 
 ---
 **Legend:**

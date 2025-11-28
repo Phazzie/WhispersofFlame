@@ -29,7 +29,7 @@ import { Question, Answer, Player } from '@contracts/types/Game';
                 </div>
                 <p class="font-medium text-red-400">{{ getPlayerName(answer.playerId) }}</p>
               </div>
-              <p class="text-white pl-13 ml-13">{{ answer.text }}</p>
+              <p class="text-white pl-14">{{ answer.text }}</p>
             </div>
           }
         </div>

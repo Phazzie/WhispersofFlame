@@ -7,9 +7,9 @@ export const environment = {
   production: false,
   
   // xAI API Configuration (for Grok AI)
+  // NOTE: API key is stored server-side only in Netlify function
   xai: {
-    apiKey: '', // Set via env variable or local override
-    baseUrl: 'https://api.x.ai/v1',
+    // apiKey removed - now server-side only via /.netlify/functions/ai-proxy
     model: 'grok-4-1-fast-reasoning', // Grok model for NSFW flexibility
   },
   

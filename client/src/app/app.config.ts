@@ -1,5 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { AUTH_SERVICE, GAME_STATE_SERVICE, AI_SERVICE, PERSISTENCE_SERVICE } from './tokens';
@@ -12,6 +13,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    provideHttpClient(),
     { provide: AUTH_SERVICE, useClass: RealAuthService },
     { provide: GAME_STATE_SERVICE, useClass: RealGameStateService },
     { provide: AI_SERVICE, useClass: RealAIService },

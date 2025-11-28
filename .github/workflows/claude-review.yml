@@ -51,17 +51,14 @@ jobs:
 
       - name: Create review context
         id: review-context
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const prBody = context.payload.pull_request.body || '';
-            const changedFiles = '${{ steps.changed-files.outputs.all_changed_files }}';
-            
-            let content = "## Changed Files\n" + changedFiles + "\n\n";
-            content += "## PR Description\n" + prBody + "\n";
-            
-            fs.writeFileSync('review-context.md', content);
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "## Changed Files" > review-context.md
+          echo "${{ steps.changed-files.outputs.all_changed_files }}" >> review-context.md
+          echo "" >> review-context.md
+          echo "## PR Description" >> review-context.md
+          echo "$PR_BODY" >> review-context.md
 
       - name: Run Claude Code Review
         id: claude-review

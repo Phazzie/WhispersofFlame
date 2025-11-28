@@ -169,9 +169,20 @@ export class RealGameStateService implements IGameStateService {
     // Generate 6-character alphanumeric code (letters only for readability)
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluded I and O to avoid confusion
     let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    let attempts = 0;
+
+    do {
+      code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      attempts++;
+      if (attempts > 10) {
+        // Failsafe to prevent infinite loop (very unlikely with 24^6 possibilities)
+        throw new Error('Failed to generate unique room code');
+      }
+    } while (this.rooms.has(code));
+
     return code;
   }
 }

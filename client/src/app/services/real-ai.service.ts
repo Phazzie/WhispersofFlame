@@ -8,16 +8,17 @@ import { firstValueFrom } from 'rxjs';
 import { buildEmberPrompt, EXAMPLE_QUESTIONS, EMBER_SUMMARY_PROMPT, DR_EMBER_PROMPT } from './ember-prompt';
 
 /**
- * WHAT: Real AI service that calls xAI's Grok API
+ * WHAT: Real AI service that calls xAI's Grok API via Netlify proxy
  * WHY: Generates dynamic, personalized intimacy questions via grok-4-1-fast-reasoning
- * HOW: Makes HTTP calls to https://api.x.ai/v1/chat/completions with Ember persona from aiguidence.md
+ * HOW: Makes HTTP calls to Netlify function which forwards to xAI (API key stays server-side)
  */
 @Injectable({
   providedIn: 'root'
 })
 export class RealAIService implements IAIService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.xai.baseUrl}/chat/completions`;
+  // Use Netlify function proxy - API key is server-side only!
+  private readonly apiUrl = '/.netlify/functions/ai-proxy';
   private readonly model = environment.xai.model;
 
   /**
@@ -64,10 +65,11 @@ export class RealAIService implements IAIService {
       qaPairs.map((qa, i) => 
         `Q${i + 1}: ${qa.question}\nAnswers: ${qa.answers.join(' | ')}`
       ).join('\n\n')
-    }\n\nCreate a warm, insightful summary of this session.`;
+    }
+\nCreate a warm, insightful summary of this session.`;
 
     try {
-      const response = await this.callXai(systemPrompt, userPrompt);
+      const response = await this.callXai(systemPrompt, userPrompt, 600); // Higher tokens for summaries
       return {
         text: response,
         metadata: {
@@ -104,7 +106,7 @@ export class RealAIService implements IAIService {
     }\n\nProvide therapeutic observations about this session.`;
 
     try {
-      const response = await this.callXai(systemPrompt, userPrompt);
+      const response = await this.callXai(systemPrompt, userPrompt, 800); // Higher tokens for therapeutic notes
       return {
         text: response,
         metadata: {
@@ -124,12 +126,12 @@ export class RealAIService implements IAIService {
   }
 
   /**
-   * Makes the actual API call to xAI
+   * Makes the actual API call to xAI via Netlify proxy
    */
-  private async callXai(systemPrompt: string, userPrompt: string): Promise<string> {
+  private async callXai(systemPrompt: string, userPrompt: string, maxTokens = 300): Promise<string> {
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${environment.xai.apiKey}`
+      'Content-Type': 'application/json'
+      // No Authorization header - API key is on server side
     });
 
     const body = {
@@ -139,7 +141,7 @@ export class RealAIService implements IAIService {
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.9,
-      max_tokens: 300
+      max_tokens: maxTokens
     };
 
     const response = await firstValueFrom(

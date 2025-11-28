@@ -147,8 +147,13 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   protected error = signal('');
   protected currentPlayerId = signal('');
 
-  // Round tracking for multiple questions
-  private roundCount = 0;
+  // Round tracking for multiple questions (persisted in sessionStorage)
+  private get roundCount(): number {
+    return parseInt(sessionStorage.getItem('wof_roundCount') || '0', 10);
+  }
+  private set roundCount(value: number) {
+    sessionStorage.setItem('wof_roundCount', value.toString());
+  }
   private readonly maxRounds = 5;
 
   protected availableCategories = [
@@ -171,11 +176,11 @@ export class GameRoomComponent implements OnInit, OnDestroy {
 
           // If player ID not set, try to find from room state
           if (!this.currentPlayerId() && state.players.length > 0) {
-            // Get the last player added (likely the current user)
+            // Only find player by stored name - don't guess by index (fragile)
             const storedName = sessionStorage.getItem('playerName');
             const player = storedName
               ? state.players.find(p => p.name === storedName)
-              : state.players[state.players.length - 1];
+              : undefined; // Avoid guessing by index, which is fragile
             if (player) {
               this.currentPlayerId.set(player.id);
               sessionStorage.setItem('currentPlayerId', player.id);
@@ -264,9 +269,10 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   }
 
   protected goHome() {
-    // Clear session data
+    // Clear session data including round count
     sessionStorage.removeItem('currentPlayerId');
     sessionStorage.removeItem('playerName');
+    sessionStorage.removeItem('wof_roundCount');
     this.router.navigate(['/']);
   }
 }

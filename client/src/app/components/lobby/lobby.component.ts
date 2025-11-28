@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { z } from 'zod';
 import { AUTH_SERVICE, GAME_STATE_SERVICE } from '../../tokens';
 import { UserProfile } from '@contracts/types/User';
@@ -203,11 +204,8 @@ export class LobbyComponent {
   }
 
   private async getUser(): Promise<UserProfile | undefined> {
-    // Helper to get current user from observable
-    return new Promise((resolve) => {
-      this.authService.authState$.subscribe(state => {
-        resolve(state.user);
-      }).unsubscribe();
-    });
+    // Helper to get current user from observable using firstValueFrom
+    const state = await firstValueFrom(this.authService.authState$);
+    return state.user;
   }
 }

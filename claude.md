@@ -15,7 +15,7 @@ Your goal: enforce **Seam-Driven Development (SDD)** and achieve **Contract Comp
 - **Testing**: Vitest (unit), Playwright (E2E)
 - **Validation**: Zod (runtime schema validation)
 - **Styling**: Tailwind CSS
-- **AI Service**: Grok-4-fast-reasoning (via OpenRouter API)
+- **AI Service**: grok-4-1-fast-reasoning (via xAI API)
 
 ## Seam-Driven Development (SDD)
 
