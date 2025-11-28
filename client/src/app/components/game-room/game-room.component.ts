@@ -12,6 +12,7 @@ import { SpicyLevelComponent } from './spicy-level/spicy-level.component';
 import { QuestionComponent } from './question/question.component';
 import { RevealComponent } from './reveal/reveal.component';
 import { SummaryComponent } from './summary/summary.component';
+import { PassPhoneComponent } from './pass-phone/pass-phone.component';
 
 /**
  * WHAT: Main game room orchestrator component
@@ -30,7 +31,8 @@ import { SummaryComponent } from './summary/summary.component';
     SpicyLevelComponent,
     QuestionComponent,
     RevealComponent,
-    SummaryComponent
+    SummaryComponent,
+    PassPhoneComponent
   ],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4">
@@ -108,10 +110,30 @@ import { SummaryComponent } from './summary/summary.component';
               <app-spicy-level (levelSelected)="onSpicyLevelSelected($event)"></app-spicy-level>
             }
             @case ('Question') {
-              <app-question 
-                [question]="room()?.currentQuestion" 
-                (answerSubmitted)="onAnswerSubmitted($event)"
-              ></app-question>
+              @if (sameDeviceMode() && showPassPhone()) {
+                <!-- Pass the Phone Screen -->
+                <app-pass-phone
+                  [currentPlayer]="getPreviousPlayer()"
+                  [nextPlayer]="getCurrentAnsweringPlayer()"
+                  (ready)="onPassPhoneReady()"
+                ></app-pass-phone>
+              } @else {
+                <!-- Show whose turn it is in same-device mode -->
+                @if (sameDeviceMode()) {
+                  <div class="text-center mb-4 p-3 bg-red-500/20 rounded-lg">
+                    <p class="text-red-400 font-medium">
+                      {{ getCurrentAnsweringPlayer()?.name }}'s turn to answer
+                    </p>
+                    <p class="text-gray-400 text-sm">
+                      Player {{ currentAnsweringPlayerIndex() + 1 }} of {{ room()?.players?.length || 0 }}
+                    </p>
+                  </div>
+                }
+                <app-question 
+                  [question]="room()?.currentQuestion" 
+                  (answerSubmitted)="onAnswerSubmitted($event)"
+                ></app-question>
+              }
             }
             @case ('Reveal') {
               <app-reveal 
@@ -146,6 +168,12 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   protected loading = signal(true);
   protected error = signal('');
   protected currentPlayerId = signal('');
+  
+  // Same-device (pass-the-phone) mode tracking
+  protected sameDeviceMode = signal(true); // Default to same-device for couples
+  protected currentAnsweringPlayerIndex = signal(0);
+  protected pendingAnswers = signal<Map<string, string>>(new Map());
+  protected showPassPhone = signal(false);
 
   // Round tracking for multiple questions (persisted in sessionStorage)
   private get roundCount(): number {
@@ -209,6 +237,26 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     return host?.id === this.currentPlayerId();
   }
 
+  /** Get the player currently answering (for same-device mode) */
+  protected getCurrentAnsweringPlayer() {
+    const room = this.room();
+    if (!room) return undefined;
+    return room.players[this.currentAnsweringPlayerIndex()];
+  }
+
+  /** Get the previous player who just answered (for pass-phone screen) */
+  protected getPreviousPlayer() {
+    const room = this.room();
+    if (!room) return undefined;
+    const prevIndex = this.currentAnsweringPlayerIndex() - 1;
+    return prevIndex >= 0 ? room.players[prevIndex] : room.players[room.players.length - 1];
+  }
+
+  /** Called when next player confirms they're ready after pass-phone */
+  protected onPassPhoneReady() {
+    this.showPassPhone.set(false);
+  }
+
   protected async startGame() {
     const room = this.room();
     if (!room) return;
@@ -228,6 +276,11 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     if (!room) return;
     await this.gameStateService.setSpicyLevel(room.code, level as SpicyLevel);
 
+    // Reset same-device mode state for new game
+    this.currentAnsweringPlayerIndex.set(0);
+    this.pendingAnswers.set(new Map());
+    this.showPassPhone.set(false);
+
     // Generate first question before transitioning to Question step
     this.roundCount = 1;
     await this.gameStateService.generateNextQuestion(room.code);
@@ -237,10 +290,36 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   protected async onAnswerSubmitted(answer: string) {
     const room = this.room();
     if (!room) return;
-    await this.gameStateService.submitAnswer(room.code, this.currentPlayerId(), answer);
-    // Check if all players answered, then move to reveal
-    // For now, just move to reveal after submission
-    await this.gameStateService.updateStep(room.code, 'Reveal');
+
+    if (this.sameDeviceMode()) {
+      // Same-device mode: collect answers from each player before revealing
+      const currentPlayer = this.getCurrentAnsweringPlayer();
+      if (!currentPlayer) return;
+
+      // Store this player's answer
+      const answers = new Map(this.pendingAnswers());
+      answers.set(currentPlayer.id, answer);
+      this.pendingAnswers.set(answers);
+
+      // Submit the answer to the game state
+      await this.gameStateService.submitAnswer(room.code, currentPlayer.id, answer);
+
+      // Check if all players have answered
+      if (answers.size >= room.players.length) {
+        // All answered! Move to reveal
+        this.pendingAnswers.set(new Map()); // Clear for next round
+        this.currentAnsweringPlayerIndex.set(0);
+        await this.gameStateService.updateStep(room.code, 'Reveal');
+      } else {
+        // More players need to answer - show pass phone screen
+        this.currentAnsweringPlayerIndex.set(this.currentAnsweringPlayerIndex() + 1);
+        this.showPassPhone.set(true);
+      }
+    } else {
+      // Multi-device mode: original behavior
+      await this.gameStateService.submitAnswer(room.code, this.currentPlayerId(), answer);
+      await this.gameStateService.updateStep(room.code, 'Reveal');
+    }
   }
 
   protected async onNextRound() {
@@ -254,6 +333,11 @@ export class GameRoomComponent implements OnInit, OnDestroy {
       await this.gameStateService.updateStep(room.code, 'Summary');
       return;
     }
+
+    // Reset same-device mode state for next round
+    this.currentAnsweringPlayerIndex.set(0);
+    this.pendingAnswers.set(new Map());
+    this.showPassPhone.set(true); // Show pass-phone before first player answers
 
     // Generate next question and go back to Question step
     await this.gameStateService.generateNextQuestion(room.code);
