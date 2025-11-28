@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { z } from 'zod';
-import { AUTH_SERVICE, GAME_STATE_SERVICE } from '../../tokens';
+import { AUTH_SERVICE, GAME_STATE_SERVICE, AI_SERVICE } from '../../tokens';
 import { UserProfile } from '@contracts/types/User';
 import { CardComponent } from '../ui/card/card.component';
 import { ButtonComponent } from '../ui/button/button.component';
@@ -116,17 +116,52 @@ const RoomCodeSchema = z.string()
 
       <!-- Footer -->
       <p class="text-gray-500 text-xs mt-8">For couples only • 18+</p>
+      
+      <!-- API Test Button (Dev Mode) -->
+      <div class="mt-4 w-full max-w-md">
+        <app-card>
+          <div class="text-center space-y-3">
+            <p class="text-gray-400 text-sm">🔧 Developer: Test xAI API Connection</p>
+            <app-button 
+              variant="secondary" 
+              [disabled]="apiTestLoading()"
+              (clicked)="testApiConnection()"
+            >
+              @if (apiTestLoading()) {
+                Testing...
+              } @else {
+                Test API
+              }
+            </app-button>
+            @if (apiTestResult()) {
+              <div class="mt-2 p-3 rounded text-sm" 
+                   [class.bg-green-900/50]="apiTestResult()?.startsWith('✅')"
+                   [class.border-green-500]="apiTestResult()?.startsWith('✅')"
+                   [class.text-green-200]="apiTestResult()?.startsWith('✅')"
+                   [class.bg-red-900/50]="apiTestResult()?.startsWith('❌')"
+                   [class.border-red-500]="apiTestResult()?.startsWith('❌')"
+                   [class.text-red-200]="apiTestResult()?.startsWith('❌')"
+                   [class.border]="true">
+                {{ apiTestResult() }}
+              </div>
+            }
+          </div>
+        </app-card>
+      </div>
     </div>
   `
 })
 export class LobbyComponent {
   protected authService = inject(AUTH_SERVICE);
   protected gameStateService = inject(GAME_STATE_SERVICE);
+  private aiService = inject(AI_SERVICE);
   private router = inject(Router);
 
   protected displayName = signal('');
   protected roomCode = signal('');
   protected error = signal('');
+  protected apiTestResult = signal<string | null>(null);
+  protected apiTestLoading = signal(false);
 
   /** Validate and sanitize display name */
   private validateDisplayName(name: string): string | null {
@@ -207,5 +242,32 @@ export class LobbyComponent {
     // Helper to get current user from observable using firstValueFrom
     const state = await firstValueFrom(this.authService.authState$);
     return state.user;
+  }
+
+  /** Test xAI API connection via Netlify function */
+  async testApiConnection() {
+    this.apiTestLoading.set(true);
+    this.apiTestResult.set(null);
+    
+    try {
+      const startTime = Date.now();
+      const response = await this.aiService.generateQuestion(
+        ['Connection'],
+        'Mild',
+        []
+      );
+      const latency = Date.now() - startTime;
+      
+      if (response.metadata?.model === 'fallback') {
+        this.apiTestResult.set(`⚠️ Fallback used (API may be unavailable). Latency: ${latency}ms`);
+      } else {
+        this.apiTestResult.set(`✅ API working! Model: ${response.metadata?.model}, Latency: ${latency}ms\n\n"${response.text.substring(0, 100)}..."`);
+      }
+    } catch (error) {
+      console.error('API test failed:', error);
+      this.apiTestResult.set(`❌ API Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      this.apiTestLoading.set(false);
+    }
   }
 }
