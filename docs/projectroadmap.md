@@ -37,33 +37,33 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
 ## Phase 3: The Tester's Gauntlet (All Tests)
 *Goal: Write the test suite for the entire application. All tests must fail (Red).*
 
-- [ ] **Service Tests**
-    - [ ] Write `AuthService.spec.ts`.
-    - [ ] Write `GameStateService.spec.ts`.
-    - [ ] Write `AIService.spec.ts`.
-    - [ ] Write `PersistenceService.spec.ts`.
+- [x] **Service Tests**
+    - [x] Write `AuthService.spec.ts`.
+    - [x] Write `GameStateService.spec.ts`.
+    - [x] Write `AIService.spec.ts`.
+    - [x] Write `PersistenceService.spec.ts`.
 
 ## Phase 4: The Simulation (All Mocks)
 *Goal: Implement Mocks to make all tests pass (Green - Mock).*
 
-- [ ] **Service Mocks**
-    - [ ] Implement `MockAuthService.ts`.
-    - [ ] Implement `MockGameStateService.ts`.
-    - [ ] Implement `MockAIService.ts`.
-    - [ ] Implement `MockPersistenceService.ts`.
-- [ ] **Verification**
-    - [ ] Verify Contract Compliance Rate (CCR) = 1.0 for all Mocks.
+- [x] **Service Mocks**
+    - [x] Implement `MockAuthService.ts`.
+    - [x] Implement `MockGameStateService.ts`.
+    - [x] Implement `MockAIService.ts`.
+    - [x] Implement `MockPersistenceService.ts`.
+- [x] **Verification**
+    - [x] Verify Contract Compliance Rate (CCR) = 1.0 for all Mocks.
 
 ## Phase 5: The Reality (All Implementations)
 *Goal: Replace Mocks with Real logic one by one (Green - Real).*
 
-- [ ] **Service Implementations**
-    - [ ] Implement `RealPersistenceService.ts` (DB Connection).
-    - [ ] Implement `RealAIService.ts` (Grok-4 Integration).
-    - [ ] Implement `RealAuthService.ts` (OAuth/Session).
-    - [ ] Implement `RealGameStateService.ts` (Core Logic).
-- [ ] **Verification**
-    - [ ] Verify CCR = 1.0 for all Real implementations.
+- [x] **Service Implementations**
+    - [x] Implement `RealPersistenceService.ts` (DB Connection).
+    - [x] Implement `RealAIService.ts` (Grok-4 Integration).
+    - [x] Implement `RealAuthService.ts` (OAuth/Session).
+    - [x] Implement `RealGameStateService.ts` (Core Logic).
+- [x] **Verification**
+    - [x] Verify CCR = 1.0 for all Real implementations.
 
 ## Phase 6: The Gateway (API Layer)
 *Goal: Expose the Services via secure endpoints.*
@@ -77,13 +77,13 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
 ## Phase 7: The Experience (Frontend)
 *Goal: A beautiful, responsive UI that consumes the API.*
 
-- [ ] **UI Component Library**
-    - [ ] Setup Tailwind CSS Theme.
-    - [ ] Build Atoms (Button, Input, Card, Loader).
-- [ ] **Feature Implementation**
-    - [ ] Lobby & Onboarding.
-    - [ ] Game Loop (Question/Answer/Reveal).
-    - [ ] Summary & Insights.
+- [x] **UI Component Library**
+    - [x] Setup Tailwind CSS Theme.
+    - [x] Build Atoms (Button, Input, Card, Loader).
+- [x] **Feature Implementation**
+    - [x] Lobby & Onboarding.
+    - [x] Game Loop (Question/Answer/Reveal).
+    - [x] Summary & Insights.
 
 ## Phase 8: Polish & Launch
 *Goal: Production readiness.*

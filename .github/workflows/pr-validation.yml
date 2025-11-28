@@ -83,6 +83,11 @@ jobs:
       - name: Comment PR with results
         if: always()
         uses: actions/github-script@v7
+        env:
+          TYPE_CHECK_OUTCOME: ${{ steps.type-check.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
         with:
           script: |
             const fs = require('fs');
@@ -90,12 +95,14 @@ jobs:
               ? JSON.parse(fs.readFileSync('./client/coverage/coverage-summary.json', 'utf8'))
               : null;
 
+            const getStatus = (outcome) => outcome === 'success' ? '✅ Passed' : '❌ Failed';
+
             let body = '## 🔍 PR Validation Results\n\n';
             body += '### ✅ SEAM-Driven Development Checks\n\n';
-            body += `- Type checking: ${{ steps.type-check.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n`;
-            body += `- Linting: ${{ steps.lint.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n`;
-            body += `- Tests: ${{ steps.test.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n`;
-            body += `- Build: ${{ steps.build.outcome == 'success' ? '✅ Passed' : '❌ Failed' }}\\n\\n`;
+            body += `- Type checking: ${getStatus(process.env.TYPE_CHECK_OUTCOME)}\\n`;
+            body += `- Linting: ${getStatus(process.env.LINT_OUTCOME)}\\n`;
+            body += `- Tests: ${getStatus(process.env.TEST_OUTCOME)}\\n`;
+            body += `- Build: ${getStatus(process.env.BUILD_OUTCOME)}\\n\\n`;
 
             if (coverage) {
               const total = coverage.total;

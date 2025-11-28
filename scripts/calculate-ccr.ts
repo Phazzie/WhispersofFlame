@@ -39,6 +39,17 @@ interface CCRReport {
   timestamp: string;
 }
 
+function normalizeSeamName(filePath: string): string {
+  const filename = path.basename(filePath);
+  // Remove .spec.ts
+  let name = filename.replace(/\.spec\.ts$/, '');
+  // Remove real- prefix
+  name = name.replace(/^real-/, '');
+  // Remove mock- prefix (if any)
+  name = name.replace(/^mock-/, '');
+  return name;
+}
+
 function loadTestResults(filePath: string): TestResult[] {
   if (!fs.existsSync(filePath)) {
     console.warn(`⚠️  Test results not found: ${filePath}`);
@@ -55,8 +66,9 @@ function loadTestResults(filePath: string): TestResult[] {
     if (data.testResults) {
       data.testResults.forEach((suite) => {
         suite.assertionResults?.forEach((test) => {
+          if (test.status === 'skipped') return;
           results.push({
-            suite: suite.name,
+            suite: normalizeSeamName(suite.name),
             test: test.title,
             passed: test.status === 'passed',
             error: test.failureMessages?.[0],

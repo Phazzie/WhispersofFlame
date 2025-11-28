@@ -5,28 +5,29 @@ import { SpicyLevel } from '@contracts/types/Game';
 
 @Injectable()
 export class MockAIService implements IAIService {
-  async generateQuestion(_categories: string[], _spicyLevel: SpicyLevel, _previousQuestions: string[]): Promise<AIResponse> {
-    void _categories;
-    void _spicyLevel;
-    void _previousQuestions;
+  async generateQuestion(categories: string[], spicyLevel: SpicyLevel, previousQuestions: string[]): Promise<AIResponse> {
+    void categories;
+    void spicyLevel;
+    void previousQuestions;
+    
     return {
-      text: 'Mock Question: What is your favorite color?',
+      text: 'Mock Question: What is one specific thing you like?',
       metadata: { model: 'mock-grok', latency: 10 }
     };
   }
 
-  async generateSummary(_qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
-    void _qaPairs;
+  async generateSummary(qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
+    void qaPairs;
     return {
-      text: 'Mock Summary: You both like blue.',
+      text: 'Mock Summary: Session was great.',
       metadata: { model: 'mock-grok', latency: 10 }
     };
   }
 
-  async generateTherapistNotes(_qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
-    void _qaPairs;
+  async generateTherapistNotes(qaPairs: { question: string; answers: string[] }[]): Promise<AIResponse> {
+    void qaPairs;
     return {
-      text: 'Mock Notes: Very interesting.',
+      text: 'Mock Notes: Good dynamic.',
       metadata: { model: 'mock-grok', latency: 10 }
     };
   }

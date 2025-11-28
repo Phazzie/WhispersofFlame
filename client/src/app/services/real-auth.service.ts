@@ -57,7 +57,7 @@ export class RealAuthService implements IAuthService {
   private handleNetlifyLogin(user: netlifyIdentity.User) {
     // Runtime validation using Zod
     const result = NetlifyUserSchema.safeParse(user);
-    
+
     if (!result.success) {
       console.error('Netlify User Validation Failed:', result.error);
       return;
@@ -77,25 +77,29 @@ export class RealAuthService implements IAuthService {
       user: userProfile,
       token: validUser.token?.access_token
     });
-    
+
     // Clear any guest session
-    localStorage.removeItem(this.GUEST_KEY);
+    sessionStorage.removeItem(this.GUEST_KEY);
   }
 
   private handleLogout() {
     this.authStateSubject.next({ isAuthenticated: false });
-    localStorage.removeItem(this.GUEST_KEY);
+    sessionStorage.removeItem(this.GUEST_KEY);
   }
 
   async loginAnonymously(displayName: string): Promise<UserProfile> {
+    if (!displayName) {
+      throw new Error('Display name required');
+    }
+
     const guestUser: UserProfile = {
       id: crypto.randomUUID(),
       displayName,
       createdAt: Date.now()
     };
 
-    // Persist guest session
-    localStorage.setItem(this.GUEST_KEY, JSON.stringify(guestUser));
+    // Persist guest session (session-only)
+    sessionStorage.setItem(this.GUEST_KEY, JSON.stringify(guestUser));
 
     this.authStateSubject.next({
       isAuthenticated: true,
@@ -126,7 +130,7 @@ export class RealAuthService implements IAuthService {
     }
 
     // 2. Check Guest Storage
-    const storedGuest = localStorage.getItem(this.GUEST_KEY);
+    const storedGuest = sessionStorage.getItem(this.GUEST_KEY);
     if (storedGuest) {
       try {
         const guestUser = JSON.parse(storedGuest) as UserProfile;
@@ -136,7 +140,7 @@ export class RealAuthService implements IAuthService {
         });
         return true;
       } catch {
-        localStorage.removeItem(this.GUEST_KEY);
+        sessionStorage.removeItem(this.GUEST_KEY);
       }
     }
 

@@ -1,12 +1,229 @@
 {
-  "ccr": 0,
-  "mockTests": [],
-  "realTests": [],
-  "details": [
+  "ccr": 1,
+  "mockTests": [
     {
-      "seam": "N/A",
-      "issue": "No test results available for comparison"
+      "suite": "ai.service",
+      "test": "should return a valid AIResponse with text and metadata",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should handle empty previous questions",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should respect spicy level in context (mock verification)",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should return a summary based on QA pairs",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should handle empty QA pairs gracefully",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should return notes based on QA pairs",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should return a user profile with the given display name",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should update authState$ after login",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should throw error for empty display name",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should clear the session and update authState$",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should return false initially (or when cleared)",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should return true after login",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should create a room with a 6-character code",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should update gameState$ after creating room",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should join an existing room",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should throw error if room does not exist",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should update the game step",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should update the spicy level",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should save and retrieve the game state",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should return null for non-existent game",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should delete an existing game",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should not throw when deleting non-existent game",
+      "passed": true
     }
   ],
-  "timestamp": "2025-11-24T03:54:38.140Z"
+  "realTests": [
+    {
+      "suite": "ai.service",
+      "test": "should return a valid AIResponse with text and metadata",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should handle empty previous questions",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should respect spicy level in context (mock verification)",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should return a summary based on QA pairs",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should handle empty QA pairs gracefully",
+      "passed": true
+    },
+    {
+      "suite": "ai.service",
+      "test": "should return notes based on QA pairs",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should return a user profile with the given display name",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should update authState$ after login",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should throw error for empty display name",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should clear the session and update authState$",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should return false initially (or when cleared)",
+      "passed": true
+    },
+    {
+      "suite": "auth.service",
+      "test": "should return true after login",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should create a room with a 6-character code",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should update gameState$ after creating room",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should join an existing room",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should throw error if room does not exist",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should update the game step",
+      "passed": true
+    },
+    {
+      "suite": "game-state.service",
+      "test": "should update the spicy level",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should save and retrieve the game state",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should return null for non-existent game",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should delete an existing game",
+      "passed": true
+    },
+    {
+      "suite": "persistence.service",
+      "test": "should not throw when deleting non-existent game",
+      "passed": true
+    }
+  ],
+  "details": [],
+  "timestamp": "2025-11-28T09:30:04.432Z"
 }
