@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { GAME_STATE_SERVICE } from '../../tokens';
-import { GameRoom, GameStep } from '@contracts/types/Game';
+import { GameRoom, SpicyLevel } from '@contracts/types/Game';
 import { CardComponent } from '../ui/card/card.component';
 import { ButtonComponent } from '../ui/button/button.component';
 import { LoaderComponent } from '../ui/loader/loader.component';
@@ -13,6 +13,11 @@ import { QuestionComponent } from './question/question.component';
 import { RevealComponent } from './reveal/reveal.component';
 import { SummaryComponent } from './summary/summary.component';
 
+/**
+ * WHAT: Main game room orchestrator component
+ * WHY: Manages game flow through all steps (Lobby → Categories → SpicyLevel → Question → Reveal → Summary)
+ * HOW: Subscribes to game state and delegates to step-specific sub-components
+ */
 @Component({
   selector: 'app-game-room',
   standalone: true,
@@ -120,6 +125,7 @@ import { SummaryComponent } from './summary/summary.component';
               <app-summary
                 [answers]="room()?.answers || []"
                 [players]="room()?.players || []"
+                [roomCode]="room()?.code || ''"
                 (playAgain)="onPlayAgain()"
                 (goHome)="goHome()"
               ></app-summary>
@@ -141,17 +147,40 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   protected error = signal('');
   protected currentPlayerId = signal('');
 
+  // Round tracking for multiple questions
+  private roundCount = 0;
+  private readonly maxRounds = 5;
+
   protected availableCategories = [
     'Intimacy', 'Dreams', 'Fantasies', 'Romance', 'Adventure', 'Communication', 'Trust', 'Desires'
   ];
 
   ngOnInit() {
+    // Retrieve current player ID from session storage (set during lobby join/create)
+    const storedPlayerId = sessionStorage.getItem('currentPlayerId');
+    if (storedPlayerId) {
+      this.currentPlayerId.set(storedPlayerId);
+    }
+
     this.gameStateService.gameState$
       .pipe(takeUntil(this.destroyed$))
       .subscribe(state => {
         if (state) {
           this.room.set(state);
           this.loading.set(false);
+
+          // If player ID not set, try to find from room state
+          if (!this.currentPlayerId() && state.players.length > 0) {
+            // Get the last player added (likely the current user)
+            const storedName = sessionStorage.getItem('playerName');
+            const player = storedName
+              ? state.players.find(p => p.name === storedName)
+              : state.players[state.players.length - 1];
+            if (player) {
+              this.currentPlayerId.set(player.id);
+              sessionStorage.setItem('currentPlayerId', player.id);
+            }
+          }
         }
       });
 
@@ -181,18 +210,22 @@ export class GameRoomComponent implements OnInit, OnDestroy {
     await this.gameStateService.updateStep(room.code, 'CategorySelection');
   }
 
-  protected async onCategoriesSelected(_categories: string[]) {
+  protected async onCategoriesSelected(categories: string[]) {
     const room = this.room();
     if (!room) return;
-    // TODO: Store categories in room state
-    void _categories;
+    // Store categories in room state
+    await this.gameStateService.setCategories(room.code, categories);
     await this.gameStateService.updateStep(room.code, 'SpicyLevel');
   }
 
   protected async onSpicyLevelSelected(level: string) {
     const room = this.room();
     if (!room) return;
-    await this.gameStateService.setSpicyLevel(room.code, level as 'Mild' | 'Medium' | 'Hot' | 'Extra-Hot');
+    await this.gameStateService.setSpicyLevel(room.code, level as SpicyLevel);
+
+    // Generate first question before transitioning to Question step
+    this.roundCount = 1;
+    await this.gameStateService.generateNextQuestion(room.code);
     await this.gameStateService.updateStep(room.code, 'Question');
   }
 
@@ -208,18 +241,32 @@ export class GameRoomComponent implements OnInit, OnDestroy {
   protected async onNextRound() {
     const room = this.room();
     if (!room) return;
-    // For now, go to summary
-    await this.gameStateService.updateStep(room.code, 'Summary');
+
+    this.roundCount++;
+
+    // Check if we've reached max rounds
+    if (this.roundCount > this.maxRounds) {
+      await this.gameStateService.updateStep(room.code, 'Summary');
+      return;
+    }
+
+    // Generate next question and go back to Question step
+    await this.gameStateService.generateNextQuestion(room.code);
+    await this.gameStateService.updateStep(room.code, 'Question');
   }
 
   protected async onPlayAgain() {
     const room = this.room();
     if (!room) return;
-    // Reset to lobby for a new game
-    await this.gameStateService.updateStep(room.code, 'Lobby');
+    // Reset round count and go back to category selection
+    this.roundCount = 0;
+    await this.gameStateService.updateStep(room.code, 'CategorySelection');
   }
 
   protected goHome() {
+    // Clear session data
+    sessionStorage.removeItem('currentPlayerId');
+    sessionStorage.removeItem('playerName');
     this.router.navigate(['/']);
   }
 }

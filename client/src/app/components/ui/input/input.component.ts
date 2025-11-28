@@ -40,8 +40,8 @@ export class InputComponent implements ControlValueAccessor {
   value = '';
   disabled = false;
 
-  onChange: (value: string) => void = () => {};
-  onTouched: () => void = () => {};
+  onChange: (value: string) => void = () => { /* noop until registerOnChange */ };
+  onTouched: () => void = () => { /* noop until registerOnTouched */ };
 
   writeValue(value: string): void {
     this.value = value;

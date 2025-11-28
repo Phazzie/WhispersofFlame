@@ -6,13 +6,13 @@
 export const environment = {
   production: true,
   
-  // OpenRouter API Configuration (for Grok AI)
+  // xAI API Configuration (for Grok AI)
   // NOTE: In production, this should be set via Netlify env vars
   // The API key should NEVER be committed to source control
-  openRouter: {
-    apiKey: '', // Injected at build time from OPENROUTER_API_KEY env var
-    baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'x-ai/grok-beta',
+  xai: {
+    apiKey: '', // Injected at build time from XAI_API_KEY env var
+    baseUrl: 'https://api.x.ai/v1',
+    model: 'grok-4-1-fast-reasoning',
   },
   
   // Netlify Identity (auto-configured by Netlify)

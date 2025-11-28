@@ -6,11 +6,11 @@
 export const environment = {
   production: false,
   
-  // OpenRouter API Configuration (for Grok AI)
-  openRouter: {
+  // xAI API Configuration (for Grok AI)
+  xai: {
     apiKey: '', // Set via env variable or local override
-    baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'x-ai/grok-beta', // Grok model for NSFW flexibility
+    baseUrl: 'https://api.x.ai/v1',
+    model: 'grok-4-1-fast-reasoning', // Grok model for NSFW flexibility
   },
   
   // Netlify Identity (auto-configured by Netlify)

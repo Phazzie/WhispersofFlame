@@ -32,7 +32,7 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://identity.netlify.com https://netlify-identity-widget.netlify.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.netlify.app https://openrouter.ai https://*.supabase.co wss://*.supabase.co; frame-src https://identity.netlify.com;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://identity.netlify.com https://netlify-identity-widget.netlify.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.netlify.app https://api.x.ai https://*.supabase.co wss://*.supabase.co; frame-src https://identity.netlify.com;"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 # Cache static assets

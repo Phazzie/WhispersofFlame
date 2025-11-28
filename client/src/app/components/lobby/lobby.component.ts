@@ -167,6 +167,12 @@ export class LobbyComponent {
 
     try {
       const room = await this.gameStateService.createRoom(user.displayName);
+      // Store player info in session storage for game-room component
+      const hostPlayer = room.players.find(p => p.isHost);
+      if (hostPlayer) {
+        sessionStorage.setItem('currentPlayerId', hostPlayer.id);
+        sessionStorage.setItem('playerName', user.displayName);
+      }
       this.router.navigate(['/game', room.code]);
     } catch (error) {
       console.error('Create room failed:', error);
@@ -183,6 +189,12 @@ export class LobbyComponent {
 
     try {
       const room = await this.gameStateService.joinRoom(validCode, user.displayName);
+      // Store player info in session storage for game-room component
+      const myPlayer = room.players.find(p => p.name === user.displayName && !p.isHost);
+      if (myPlayer) {
+        sessionStorage.setItem('currentPlayerId', myPlayer.id);
+        sessionStorage.setItem('playerName', user.displayName);
+      }
       this.router.navigate(['/game', room.code]);
     } catch (error) {
       console.error('Join room failed:', error);

@@ -5,7 +5,7 @@
  */
 
 import { Observable } from 'rxjs';
-import { GameRoom, GameStep, SpicyLevel } from '../types/Game';
+import { GameRoom, GameStep, SpicyLevel, Question } from '../types/Game';
 
 export interface IGameStateService {
   /**
@@ -36,11 +36,24 @@ export interface IGameStateService {
   updateStep(roomCode: string, step: GameStep): Promise<void>;
 
   /**
+   * Sets the categories for the game.
+   * @param roomCode The room code.
+   * @param categories The selected categories.
+   */
+  setCategories(roomCode: string, categories: string[]): Promise<void>;
+
+  /**
    * Sets the spicy level for the game.
    * @param roomCode The room code.
    * @param level The selected spicy level.
    */
   setSpicyLevel(roomCode: string, level: SpicyLevel): Promise<void>;
+
+  /**
+   * Generates and sets a new question for the current round.
+   * @param roomCode The room code.
+   */
+  generateNextQuestion(roomCode: string): Promise<Question>;
 
   /**
    * Submits an answer for the current question.
@@ -49,4 +62,10 @@ export interface IGameStateService {
    * @param text The answer text.
    */
   submitAnswer(roomCode: string, playerId: string, text: string): Promise<void>;
+
+  /**
+   * Gets Q&A pairs for summary generation.
+   * @param roomCode The room code.
+   */
+  getQAPairs(roomCode: string): { question: string; answers: string[] }[];
 }

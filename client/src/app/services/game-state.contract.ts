@@ -58,6 +58,17 @@ export function runGameStateServiceTests(createService: () => IGameStateService,
       });
     });
 
+    describe('setCategories', () => {
+      it('should update the categories', async () => {
+        const room = await service.createRoom('Host');
+        const categories = ['Intimacy', 'Romance', 'Trust'];
+        await service.setCategories(room.code, categories);
+        
+        const state = await firstValueFrom(service.gameState$);
+        expect(state?.categories).toEqual(categories);
+      });
+    });
+
     describe('setSpicyLevel', () => {
       it('should update the spicy level', async () => {
         const room = await service.createRoom('Host');
@@ -65,6 +76,62 @@ export function runGameStateServiceTests(createService: () => IGameStateService,
         
         const state = await firstValueFrom(service.gameState$);
         expect(state?.spicyLevel).toBe('Hot');
+      });
+    });
+
+    describe('generateNextQuestion', () => {
+      it('should generate a question and set currentQuestion', async () => {
+        const room = await service.createRoom('Host');
+        await service.setCategories(room.code, ['Connection']);
+        await service.setSpicyLevel(room.code, 'Mild');
+        
+        const question = await service.generateNextQuestion(room.code);
+        
+        expect(question).toBeDefined();
+        expect(question.id).toBeDefined();
+        expect(question.text).toBeDefined();
+        expect(question.spicyLevel).toBe('Mild');
+        
+        const state = await firstValueFrom(service.gameState$);
+        expect(state?.currentQuestion).toEqual(question);
+      });
+    });
+
+    describe('submitAnswer', () => {
+      it('should add answer to the room answers', async () => {
+        const room = await service.createRoom('Host');
+        await service.setCategories(room.code, ['Connection']);
+        await service.generateNextQuestion(room.code);
+        
+        const playerId = room.players[0].id;
+        await service.submitAnswer(room.code, playerId, 'My answer');
+        
+        const state = await firstValueFrom(service.gameState$);
+        expect(state?.answers.length).toBe(1);
+        expect(state?.answers[0].text).toBe('My answer');
+        expect(state?.answers[0].playerId).toBe(playerId);
+      });
+    });
+
+    describe('getQAPairs', () => {
+      it('should return Q&A pairs for summary generation', async () => {
+        const room = await service.createRoom('Host');
+        await service.setCategories(room.code, ['Connection']);
+        await service.generateNextQuestion(room.code);
+        
+        const playerId = room.players[0].id;
+        await service.submitAnswer(room.code, playerId, 'Answer 1');
+        
+        const qaPairs = service.getQAPairs(room.code);
+        
+        expect(qaPairs.length).toBe(1);
+        expect(qaPairs[0].question).toBeDefined();
+        expect(qaPairs[0].answers).toContain('Answer 1');
+      });
+
+      it('should return empty array for non-existent room', () => {
+        const qaPairs = service.getQAPairs('NONEXISTENT');
+        expect(qaPairs).toEqual([]);
       });
     });
   });

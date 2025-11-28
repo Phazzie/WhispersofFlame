@@ -59,7 +59,7 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
 
 - [x] **Service Implementations**
     - [x] Implement `RealPersistenceService.ts` (DB Connection).
-    - [x] Implement `RealAIService.ts` (Grok-4 Integration).
+    - [x] Implement `RealAIService.ts` (xAI grok-4-1-fast-reasoning Integration).
     - [x] Implement `RealAuthService.ts` (OAuth/Session).
     - [x] Implement `RealGameStateService.ts` (Core Logic).
 - [x] **Verification**
@@ -93,7 +93,7 @@ This roadmap follows a **Strict SDD Waterfall** methodology.
     - [ ] Security Audit (input validation, XSS protection, auth flows).
     - [ ] Performance Tuning (bundle size, lazy loading, Lighthouse audit).
     - [ ] User Acceptance Testing (UAT).
-    - [ ] Environment Configuration (OpenRouter API key, Netlify Identity).
+    - [ ] Environment Configuration (xAI API key, Netlify Identity).
     - [ ] Launch (deploy to Netlify/Vercel).
 
 ## Phase 9: Bonus - MCP Agent Collaboration (Complete)

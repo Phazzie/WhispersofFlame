@@ -1,13 +1,20 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardComponent } from '../../ui/card/card.component';
 import { ButtonComponent } from '../../ui/button/button.component';
-import { Answer, Player, Question } from '@contracts/types/Game';
+import { LoaderComponent } from '../../ui/loader/loader.component';
+import { Answer, Player } from '@contracts/types/Game';
+import { AI_SERVICE, GAME_STATE_SERVICE } from '../../../tokens';
 
+/**
+ * WHAT: Game summary component showing session highlights and AI-generated insights
+ * WHY: Provides couples with meaningful takeaways and encourages reflection
+ * HOW: Displays stats, memorable moments, AI summary, and optional therapist notes
+ */
 @Component({
   selector: 'app-summary',
   standalone: true,
-  imports: [CommonModule, CardComponent, ButtonComponent],
+  imports: [CommonModule, CardComponent, ButtonComponent, LoaderComponent],
   template: `
     <div class="space-y-6">
       <!-- Celebration Header -->
@@ -32,6 +39,42 @@ import { Answer, Player, Question } from '@contracts/types/Game';
           </div>
         </div>
       </app-card>
+
+      <!-- AI-Generated Summary -->
+      <app-card title="Ember's Reflection 🔥">
+        @if (loadingSummary()) {
+          <div class="flex justify-center py-8">
+            <app-loader size="md" message="Ember is reflecting on your session..."></app-loader>
+          </div>
+        } @else if (summaryText()) {
+          <div class="prose prose-invert max-w-none">
+            <p class="text-gray-200 whitespace-pre-line">{{ summaryText() }}</p>
+          </div>
+        } @else {
+          <p class="text-gray-400 text-center py-4">
+            Unable to generate summary. But the memories are yours forever! 💕
+          </p>
+        }
+      </app-card>
+
+      <!-- Dr. Ember's Notes (Optional) -->
+      @if (showTherapistNotes()) {
+        <app-card title="Dr. Ember's Notes 📝">
+          @if (loadingNotes()) {
+            <div class="flex justify-center py-8">
+              <app-loader size="md" message="Dr. Ember is reviewing your session..."></app-loader>
+            </div>
+          } @else if (therapistNotes()) {
+            <div class="prose prose-invert max-w-none">
+              <p class="text-gray-200 whitespace-pre-line">{{ therapistNotes() }}</p>
+            </div>
+          }
+        </app-card>
+      } @else {
+        <app-button variant="outline" (clicked)="requestTherapistNotes()">
+          📝 Get Dr. Ember's Notes
+        </app-button>
+      }
 
       <!-- Memorable Moments -->
       @if (answers.length > 0) {
@@ -69,11 +112,72 @@ import { Answer, Player, Question } from '@contracts/types/Game';
     </div>
   `
 })
-export class SummaryComponent {
+export class SummaryComponent implements OnInit {
+  private aiService = inject(AI_SERVICE);
+  private gameStateService = inject(GAME_STATE_SERVICE);
+
   @Input() answers: Answer[] = [];
   @Input() players: Player[] = [];
+  @Input() roomCode = '';
   @Output() playAgain = new EventEmitter<void>();
   @Output() goHome = new EventEmitter<void>();
+
+  protected summaryText = signal('');
+  protected therapistNotes = signal('');
+  protected loadingSummary = signal(false);
+  protected loadingNotes = signal(false);
+  protected showTherapistNotes = signal(false);
+
+  async ngOnInit() {
+    await this.generateSummary();
+  }
+
+  private async generateSummary() {
+    this.loadingSummary.set(true);
+    try {
+      // Get Q&A pairs from game state
+      const qaPairs = this.gameStateService.getQAPairs(this.roomCode);
+
+      if (qaPairs.length > 0) {
+        const response = await this.aiService.generateSummary(qaPairs);
+        this.summaryText.set(response.text);
+      } else {
+        // Fallback if no Q&A pairs available
+        this.summaryText.set(
+          "What a wonderful session! You've shared intimate moments and deepened your connection. " +
+          "Keep nurturing this flame between you. 🔥"
+        );
+      }
+    } catch (error) {
+      console.error('Failed to generate summary:', error);
+      this.summaryText.set('');
+    } finally {
+      this.loadingSummary.set(false);
+    }
+  }
+
+  protected async requestTherapistNotes() {
+    this.showTherapistNotes.set(true);
+    this.loadingNotes.set(true);
+    try {
+      const qaPairs = this.gameStateService.getQAPairs(this.roomCode);
+
+      if (qaPairs.length > 0) {
+        const response = await this.aiService.generateTherapistNotes(qaPairs);
+        this.therapistNotes.set(response.text);
+      } else {
+        this.therapistNotes.set(
+          "Based on tonight's session, I encourage you to continue exploring these conversations " +
+          "in your daily life. Open communication is the foundation of intimacy."
+        );
+      }
+    } catch (error) {
+      console.error('Failed to generate therapist notes:', error);
+      this.therapistNotes.set('');
+    } finally {
+      this.loadingNotes.set(false);
+    }
+  }
 
   protected getPlayerName(playerId: string): string {
     const player = this.players.find(p => p.id === playerId);
