@@ -226,7 +226,10 @@ export class LobbyComponent {
     try {
       const room = await this.gameStateService.joinRoom(validCode, user.displayName);
       // Store player info in session storage for game-room component
-      const myPlayer = room.players.find(p => p.name === user.displayName && !p.isHost);
+      // Find the newly added player (last one with matching name)
+      const myPlayer = room.players.find(
+        p => p.name.toLowerCase() === user.displayName.toLowerCase() && !p.isHost
+      );
       if (myPlayer) {
         sessionStorage.setItem('currentPlayerId', myPlayer.id);
         sessionStorage.setItem('playerName', user.displayName);
@@ -234,7 +237,11 @@ export class LobbyComponent {
       this.router.navigate(['/game', room.code]);
     } catch (error) {
       console.error('Join room failed:', error);
-      this.error.set('Room not found. Check the code and try again.');
+      // Show specific error message from service
+      const message = error instanceof Error ? error.message : 'Room not found';
+      this.error.set(message === 'Room not found' 
+        ? 'Room not found. Check the code and try again.'
+        : message);
     }
   }
 

@@ -47,6 +47,24 @@ export class RealGameStateService implements IGameStateService {
     const room = this.rooms.get(roomCode);
     if (!room) throw new Error('Room not found');
 
+    // Only allow joins during Lobby phase
+    if (room.step !== 'Lobby') {
+      throw new Error('Game already in progress');
+    }
+
+    // Check room capacity (max 4 players for group dynamics)
+    if (room.players.length >= 4) {
+      throw new Error('Room is full');
+    }
+
+    // Prevent duplicate names (case-insensitive)
+    const nameTaken = room.players.some(
+      p => p.name.toLowerCase() === playerName.toLowerCase()
+    );
+    if (nameTaken) {
+      throw new Error('Name already taken in this room');
+    }
+
     const newPlayer = { id: crypto.randomUUID(), name: playerName, isHost: false, isReady: false };
     const updatedRoom = { ...room, players: [...room.players, newPlayer] };
 
