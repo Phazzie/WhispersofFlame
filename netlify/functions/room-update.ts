@@ -78,6 +78,9 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
     }
 
     // Update room and log event - FIXED: Use parameterized queries
+    // TODO: Verify that this implementation is fully secure against SQL injection.
+    // The previous implementation used sql.unsafe, which was vulnerable.
+    // The current implementation uses tagged templates (tx`...`), which should be safe.
     await sql.transaction(async (tx) => {
       if (input.step) {
         await tx`UPDATE rooms SET step = ${input.step} WHERE id = ${room.id}`;

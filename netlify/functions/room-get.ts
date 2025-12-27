@@ -49,6 +49,10 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
   const sql = neon(DATABASE_URL);
 
   try {
+    // TODO: See #TODO.md - Fix N+1 Query
+    // Currently executing 4 sequential queries.
+    // Recommended fix: Use a single query with LEFT JOIN and json_agg to fetch everything in one go.
+
     // Get room
     const rooms = await sql`
       SELECT * FROM rooms

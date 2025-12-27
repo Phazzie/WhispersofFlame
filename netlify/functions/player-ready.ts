@@ -72,6 +72,8 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
 
     // Update player and log event
     await sql.transaction(async (tx) => {
+      // TODO: See #TODO.md - Optimize Player Ready
+      // Combine the two UPDATE queries into one for better performance.
       await tx`
         UPDATE players
         SET is_ready = ${input.isReady}

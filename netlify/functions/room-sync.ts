@@ -68,6 +68,10 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
 
     const room = rooms[0];
 
+    // TODO: See #TODO.md - Optimize Room Sync
+    // Consider adding Cache-Control headers to reduce load if events haven't changed.
+    // Also, index `game_events(room_id, created_at)` is crucial here (it's already in schema, verify it exists).
+
     // Get events since timestamp (or last 50 if no timestamp)
     let events;
     if (since) {
