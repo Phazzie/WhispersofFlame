@@ -64,6 +64,10 @@ const handler: Handler = async (event: HandlerEvent, _context: HandlerContext) =
       return code;
     };
 
+    // TODO: See #TODO.md - Race condition in room code generation
+    // Current implementation checks for existence then inserts, which has a small race condition window.
+    // Recommended fix: Use INSERT ... ON CONFLICT DO NOTHING with retry logic.
+
     // Try up to 10 times to get unique code
     let roomCode = '';
     let attempts = 0;

@@ -39,6 +39,10 @@ export class RealSyncService {
     this.activeRoomCode$.next(roomCode);
     this.lastSyncTime = new Date().toISOString();
 
+    // TODO: See #TODO.md - Frontend: Robust Polling
+    // Current implementation polls every 2 seconds regardless of errors.
+    // Recommended improvement: Use exponential backoff (retryWhen/delay) if requests fail.
+
     return interval(this.syncInterval).pipe(
       filter(() => this.activeRoomCode$.value === roomCode),
       switchMap(() => this.fetchEvents(roomCode))

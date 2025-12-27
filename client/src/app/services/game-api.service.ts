@@ -50,6 +50,8 @@ interface SubmitAnswerRequest {
   providedIn: 'root'
 })
 export class GameApiService {
+  // TODO: See #TODO.md - Connection Pooling
+  // Consider adding HTTP interceptors or configuring HttpClient to improved connection reuse/performance if needed.
   private readonly apiBase = '/.netlify/functions';
 
   constructor(private http: HttpClient) {}
